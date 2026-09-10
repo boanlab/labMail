@@ -1,0 +1,9 @@
+node_modules
+dist
+data
+.env
+*.db
+*.db-*
+.git
+test
+README.md

@@ -1,0 +1,49 @@
+{
+  "name": "labmail",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "admin": "node --experimental-strip-types src/scripts/admin.ts",
+    "backup": "node --experimental-strip-types src/scripts/backup.ts",
+    "dev": "node --experimental-strip-types --watch src/web/server.ts",
+    "diagnose:routing": "node --experimental-strip-types src/scripts/diagnose-routing.ts",
+    "migrate": "node --experimental-strip-types src/scripts/migrate.ts",
+    "provision": "node --experimental-strip-types src/scripts/provision.ts",
+    "seed:demo": "node --experimental-strip-types src/scripts/seed-demo.ts",
+    "start": "node --experimental-strip-types src/web/server.ts",
+    "sync": "node --experimental-strip-types src/scripts/sync.ts",
+    "test": "node --experimental-strip-types --test test/*.test.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "better-sqlite3": "^13.0.3",
+    "dotenv": "^17.4.2",
+    "googleapis": "^178.0.0"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.12",
+    "@types/node": "^26.4.1",
+    "playwright": "^1.49.0",
+    "typescript": "^7.0.2"
+  },
+  "description": "One Google Workspace mailbox, presented as separate inboxes.",
+  "license": "MIT",
+  "keywords": [
+    "gmail",
+    "mail-client",
+    "google-workspace",
+    "shared-mailbox"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/boanlab/labMail.git"
+  },
+  "bugs": {
+    "url": "https://github.com/boanlab/labMail/issues"
+  },
+  "homepage": "https://github.com/boanlab/labMail#readme"
+}
