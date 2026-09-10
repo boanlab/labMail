@@ -2,8 +2,11 @@ import { db } from '../../db/index.ts'
 import { createSession, destroySession, loadSession, verifyPassword } from '../../core/auth.ts'
 import { signup, checkLocalPart, canSend } from '../../core/users.ts'
 import { setSignature, setDisplayName, changePassword } from '../../core/profile.ts'
+import {
+  listAppPasswords, createAppPassword, revokeAppPassword,
+} from '../../core/app-passwords.ts'
 import { countUnread, mailboxCounts } from '../../db/index.ts'
-import { getSetting, isGoogleConnected } from '../../core/settings.ts'
+import { getSetting, isGoogleConnected, mailClientSettings } from '../../core/settings.ts'
 import { syncHealth } from '../../core/sync-status.ts'
 import { LOCALES, LOCALE_COOKIE, isLocale, t } from '../../core/i18n.ts'
 import {
@@ -175,6 +178,42 @@ export function registerAuthRoutes(router: Router): void {
     audit({
       actor: user.alias ?? user.username, actorId: user.id,
       action: 'account.password', ip: clientAddress(req),
+    })
+    json(res, 200, { ok: true })
+  })
+
+  /** What a mail client needs to reach this deployment. Members only. */
+  router.get('/api/profile/mail-settings', ({ req, res }) => {
+    requireUser(req)
+    json(res, 200, mailClientSettings())
+  })
+
+  /** A member's own mail-client credentials. Never visible to anyone else. */
+  router.get('/api/profile/app-passwords', ({ req, res }) => {
+    const user = requireUser(req)
+    json(res, 200, { passwords: listAppPasswords(user.id) })
+  })
+
+  router.post('/api/profile/app-passwords', async ({ req, res }) => {
+    const user = requireUser(req)
+    const body = await readJson(req)
+    const created = await createAppPassword(user.id, str(body, 'label'))
+    audit({
+      actor: user.alias ?? user.username, actorId: user.id,
+      action: 'app-password.create', target: String(created.id),
+      detail: { label: str(body, 'label').trim().slice(0, 40) }, ip: clientAddress(req),
+    })
+    // The only time the secret exists outside a hash.
+    json(res, 200, created)
+  })
+
+  router.post('/api/profile/app-passwords/:id/revoke', ({ req, res, params }) => {
+    const user = requireUser(req)
+    const id = Number(params.id)
+    if (!revokeAppPassword(user.id, id)) throw new HttpError(404, 'error.notFound')
+    audit({
+      actor: user.alias ?? user.username, actorId: user.id,
+      action: 'app-password.revoke', target: String(id), ip: clientAddress(req),
     })
     json(res, 200, { ok: true })
   })

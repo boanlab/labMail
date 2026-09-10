@@ -257,3 +257,39 @@ CREATE TABLE IF NOT EXISTS drive_files (
 
 CREATE INDEX IF NOT EXISTS idx_drive_alias  ON drive_files (alias);
 CREATE INDEX IF NOT EXISTS idx_drive_parent ON drive_files (parent_id);
+
+-- IMAP needs a stable, monotonic UID per message per member mailbox, and a
+-- UIDVALIDITY a client can compare against what it cached. Neither can be
+-- derived from message ids, which are shared across members and mailboxes.
+CREATE TABLE IF NOT EXISTS imap_mailboxes (
+  alias        TEXT    NOT NULL,
+  mailbox      TEXT    NOT NULL,
+  uidvalidity  INTEGER NOT NULL,
+  uidnext      INTEGER NOT NULL DEFAULT 1,
+  PRIMARY KEY (alias, mailbox)
+);
+
+CREATE TABLE IF NOT EXISTS imap_uids (
+  alias      TEXT    NOT NULL,
+  mailbox    TEXT    NOT NULL,
+  message_id INTEGER NOT NULL REFERENCES messages (id) ON DELETE CASCADE,
+  uid        INTEGER NOT NULL,
+  PRIMARY KEY (alias, mailbox, message_id)
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS imap_uids_order
+  ON imap_uids (alias, mailbox, uid);
+
+-- Credentials for mail clients, one per device. Kept apart from the sign-in
+-- password: a client stores its copy on disk and sends it on every connection,
+-- and losing a laptop should cost one entry rather than the account.
+CREATE TABLE IF NOT EXISTS app_passwords (
+  id            INTEGER PRIMARY KEY,
+  user_id       INTEGER NOT NULL REFERENCES users (id) ON DELETE CASCADE,
+  label         TEXT    NOT NULL,
+  password_hash TEXT    NOT NULL,
+  created_at    TEXT    NOT NULL DEFAULT (datetime('now')),
+  last_used_at  TEXT
+);
+
+CREATE INDEX IF NOT EXISTS app_passwords_user ON app_passwords (user_id);

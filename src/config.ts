@@ -25,6 +25,25 @@ export const config = {
   },
   databasePath: optional('DATABASE_PATH', './data/labmail.db'),
   port: Number(optional('PORT', '8000')),
+  /**
+   * SMTP submission port, 0 to leave it off.
+   *
+   * Bound to loopback: TLS belongs to whatever publishes 465, and the
+   * plaintext port must never be reachable from outside the host.
+   */
+  smtpPort: Number(optional('SMTP_PORT', '0')),
+  smtpHost: optional('SMTP_HOST', '127.0.0.1'),
+  /**
+   * Expect a PROXY protocol header on every submission connection.
+   *
+   * Declared rather than sniffed: a server that waits to find out whether one
+   * is coming cannot greet, and SMTP begins with the server speaking.
+   */
+  smtpProxyProtocol: optional('SMTP_PROXY_PROTOCOL', 'false') === 'true',
+  /** IMAP port, 0 to leave it off. Loopback and plaintext, like submission. */
+  imapPort: Number(optional('IMAP_PORT', '0')),
+  imapHost: optional('IMAP_HOST', '127.0.0.1'),
+  imapProxyProtocol: optional('IMAP_PROXY_PROTOCOL', 'false') === 'true',
   /** Public origin for the OAuth redirect. Falls back to the request Host. */
   publicUrl: process.env.PUBLIC_URL?.trim().replace(/\/$/, '') || null,
   /** Audit retention in days. 0 keeps everything. */

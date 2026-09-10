@@ -134,6 +134,18 @@ export async function start(port: number = config.port): Promise<Server> {
 
   if (port === config.port) {
     console.log(`labMail listening on http://0.0.0.0:${port}`)
+    // Started alongside rather than in its own process: it shares the database,
+    // the send path and the throttle, and a deployment stays one container.
+    if (config.smtpPort > 0) {
+      const { startSmtp } = await import('../mail/smtp.ts')
+      await startSmtp(config.smtpPort, config.smtpHost, config.smtpProxyProtocol)
+      console.log(`  SMTP submission on ${config.smtpHost}:${config.smtpPort}`)
+    }
+    if (config.imapPort > 0) {
+      const { startImap } = await import('../mail/imap.ts')
+      await startImap(config.imapPort, config.imapHost, config.imapProxyProtocol)
+      console.log(`  IMAP on ${config.imapHost}:${config.imapPort}`)
+    }
     console.log(isGoogleConnected()
       ? `  Google: connected (${getSetting('shared_account_email')}, @${getSetting('org_domain')})`
       : '  Google: not configured — sign in as admin and open system settings')

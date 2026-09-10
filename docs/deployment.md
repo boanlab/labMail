@@ -149,6 +149,9 @@ The proxy should forward `X-Forwarded-Proto` and `X-Forwarded-Host`. Terminate
 TLS there — session cookies are not marked `Secure`, so plain HTTP beyond a
 trusted network exposes them.
 
+That covers the web interface. SMTP and IMAP need a TCP proxy rather than an
+HTTP one, and are described in [mail-clients.md](mail-clients.md).
+
 ## Backups
 
 Everything lives in the `labmail-data` volume: mirrored mail, member accounts,

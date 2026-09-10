@@ -15,6 +15,9 @@ export const SETTING_KEYS = [
   'org_domain',
   'sync_interval_seconds',
   'undo_send_seconds',
+  'mail_client_host',
+  'mail_client_imap_port',
+  'mail_client_smtp_port',
 ] as const
 
 export type SettingKey = (typeof SETTING_KEYS)[number]
@@ -98,6 +101,22 @@ export function undoSendSeconds(): number {
 export function syncIntervalSeconds(): number {
   const raw = Number(getSetting('sync_interval_seconds') ?? 60)
   return Number.isFinite(raw) && raw >= 15 ? raw : 60
+}
+
+/**
+ * How a mail client reaches this deployment.
+ *
+ * Not derivable from anything the application knows: the ports are terminated
+ * by a proxy that may answer on a different name than the web interface, and
+ * on ports of its choosing. Blank means the setup instructions say so rather
+ * than guess.
+ */
+export function mailClientSettings(): { host: string; imapPort: string; smtpPort: string } {
+  return {
+    host: getSetting('mail_client_host')?.trim() ?? '',
+    imapPort: getSetting('mail_client_imap_port')?.trim() || '993',
+    smtpPort: getSetting('mail_client_smtp_port')?.trim() || '465',
+  }
 }
 
 /** Sufficient to start an OAuth consent flow. */

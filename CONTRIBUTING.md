@@ -67,7 +67,7 @@ src/
   web/               HTTP server, router, route modules, and the browser client
   scripts/           Operational entry points (migrate, sync, seed, provision, backup)
 test/                Unit and integration tests
-docs/                Configuration, deployment, security model, roadmap
+docs/                Configuration, deployment, mail clients, security model
 ```
 
 ## Commit messages

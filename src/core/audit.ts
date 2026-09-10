@@ -16,10 +16,13 @@ import { db } from '../db/index.ts'
 
 export const AUDIT_ACTIONS = [
   'signin.ok', 'signin.fail', 'signin.throttled', 'signout',
+  // Mail clients, kept apart from the web sign-in so the two can be told apart.
+  'mail.auth.ok', 'mail.auth.fail', 'mail.auth.throttled',
   'message.read', 'message.send', 'message.action',
   'member.approve', 'member.reject', 'member.deactivate', 'member.assign',
   'settings.save', 'google.connect', 'google.disconnect',
   'account.alias', 'account.password',
+  'app-password.create', 'app-password.revoke',
   'audit.view',
 ] as const
 

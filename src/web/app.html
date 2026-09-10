@@ -1274,6 +1274,11 @@ const STRINGS = {
     "toast.sentWithUndo": "메일을 보냈습니다 · {n}초",
     "toast.undo": "실행취소",
     "toast.undone": "발송을 취소했습니다",
+    "settings.mailHost": "메일 클라이언트 서버 주소",
+    "settings.mailHostHelp": "Thunderbird·Apple Mail이 접속할 주소입니다.\nTLS를 종단하는 서버의 이름이며, 웹 주소와 다를 수 있습니다.\n비워두면 구성원 안내에 설정이 필요하다고 표시됩니다.",
+    "settings.mailImapPort": "IMAP 포트",
+    "settings.mailSmtpPort": "SMTP 포트",
+    "settings.mailPortHelp": "TLS를 종단하는 서버가 여는 포트입니다. 표준은 993과 465입니다.",
     "settings.undoSeconds": "발송 취소 시간 (초)",
     "settings.undoSecondsHelp": "보내기 후 이 시간 동안 취소할 수 있습니다.\n0이면 즉시 발송합니다.\n최대 60초.",
     "nav.profile": "내 설정",
@@ -1356,6 +1361,49 @@ const STRINGS = {
     "live.newMail": "새 메일 {n}통",
     "live.open": "받은편지함 열기",
     "nav.categories": "카테고리",
+    "guide.title": "메일 프로그램 설정 방법",
+    "guide.help": "아래 값은 모든 프로그램에서 같습니다.\n비밀번호는 위에서 만든 앱 비밀번호를 쓰세요. labMail 로그인 비밀번호가 아닙니다.",
+    "guide.noHost": "관리자가 아직 메일 서버 주소를 지정하지 않았습니다.\n시스템 설정에서 지정하면 여기에 설정 방법이 표시됩니다.",
+    "guide.address": "메일 주소",
+    "guide.username": "사용자 이름",
+    "guide.imapServer": "수신 서버 (IMAP)",
+    "guide.smtpServer": "발신 서버 (SMTP)",
+    "guide.security": "연결 보안",
+    "guide.securityValue": "SSL/TLS (STARTTLS 아님)",
+    "guide.password": "비밀번호",
+    "guide.passwordValue": "위에서 만든 앱 비밀번호",
+    "guide.apple": "Apple Mail",
+    "guide.thunderbird": "Thunderbird",
+    "guide.outlook": "Outlook",
+    "guide.ios": "iPhone · iPad",
+    "guide.apple1": "메일 → 설정 → 계정 → 왼쪽 아래 + → 다른 Mail 계정",
+    "guide.apple2": "이메일 주소 {address}, 암호에 앱 비밀번호를 입력하고 로그인을 누릅니다.\n자동 설정은 실패합니다. 그대로 다음 화면으로 넘어갑니다.",
+    "guide.apple3": "계정 유형 IMAP, 수신·발신 메일 서버 모두 {host}",
+    "guide.apple4": "계정이 만들어지면 서버 설정 탭을 열고, 수신·발신 양쪽에서 \"연결 설정 자동으로 관리\"를 끕니다.\n수신 포트 {imap}, 발신 포트 {smtp}, 둘 다 TLS/SSL 사용을 켜고 인증은 \"암호\"로 둡니다.",
+    "guide.apple5": "저장하고 메일이 보이면 끝입니다.",
+    "guide.tb1": "계정 설정 → 계정 작업 → 메일 계정 추가",
+    "guide.tb2": "이메일 주소 {address}, 암호에 앱 비밀번호를 입력하고 \"수동 설정\"을 누릅니다.",
+    "guide.tb3": "수신 IMAP · {host} · 포트 {imap} · SSL/TLS · 일반 비밀번호\n발신 SMTP · {host} · 포트 {smtp} · SSL/TLS · 일반 비밀번호",
+    "guide.tb4": "사용자 이름은 수신·발신 모두 {address} 입니다.\n\"다시 테스트\"를 누르고 완료합니다.",
+    "guide.ol1": "파일 → 계정 추가 → 주소 입력 → 고급 옵션에서 \"계정을 수동으로 설정\" 체크 → IMAP 선택",
+    "guide.ol2": "수신 {host} 포트 {imap} SSL/TLS, 발신 {host} 포트 {smtp} SSL/TLS",
+    "guide.ol3": "암호에는 앱 비밀번호를 입력합니다.\n로그인 비밀번호를 넣으면 인증에 실패합니다.",
+    "guide.ios1": "설정 → 앱 → 메일 → 메일 계정 → 계정 추가 → 기타 → 메일 계정 추가",
+    "guide.ios2": "이름·이메일({address})·암호(앱 비밀번호)를 입력하고 다음을 누릅니다.",
+    "guide.ios3": "IMAP 탭에서 수신·발신 서버 모두 호스트 이름을 {host} 로, 사용자 이름을 {address} 로 입력합니다.",
+    "guide.ios4": "저장 후 설정 → 앱 → 메일 → 계정에서 발신 서버 포트가 {smtp}, SSL 사용이 켜져 있는지 확인합니다.",
+    "appPassword.title": "메일 클라이언트",
+    "appPassword.help": "Thunderbird·Apple Mail 같은 메일 프로그램에서 이 계정을 쓰려면 기기마다 비밀번호를 따로 만드세요.\n하나라도 만들면 labMail 로그인 비밀번호로는 메일 프로그램에 연결할 수 없게 됩니다.\n기기를 잃어버렸을 때 그 하나만 폐기하면 되고, 로그인 비밀번호는 바꾸지 않아도 됩니다.",
+    "appPassword.label": "이름",
+    "appPassword.created": "만든 날짜",
+    "appPassword.lastUsed": "마지막 사용",
+    "appPassword.neverUsed": "사용한 적 없음",
+    "appPassword.revoke": "폐기",
+    "appPassword.revokeConfirm": "\"{label}\" 비밀번호를 폐기할까요?\n\n그 기기의 메일 프로그램이 즉시 연결을 잃습니다.",
+    "appPassword.create": "새 비밀번호 만들기",
+    "appPassword.labelPrompt": "이 비밀번호를 쓸 기기 이름을 적으세요.\n나중에 어느 것을 폐기할지 고를 때 쓰입니다.",
+    "appPassword.none": "아직 만든 비밀번호가 없습니다.",
+    "appPassword.createdBody": "\"{label}\" 비밀번호가 만들어졌습니다.\n\n{secret}\n\n이 값은 다시 표시되지 않습니다.\n지금 메일 프로그램에 입력하세요.",
     "cat.title": "카테고리",
     "cat.help": "메일을 내 방식대로 묶어둡니다.\n다른 구성원에게는 보이지 않습니다.",
     "cat.name": "이름",
@@ -1807,6 +1855,11 @@ const STRINGS = {
     "toast.sentWithUndo": "Message sent · {n}s",
     "toast.undo": "Undo",
     "toast.undone": "Send cancelled",
+    "settings.mailHost": "Mail client server",
+    "settings.mailHostHelp": "The address Thunderbird and Apple Mail connect to.\nIt is the name of the server terminating TLS, which may differ from the web address.\nLeft blank, the member instructions say it has not been set.",
+    "settings.mailImapPort": "IMAP port",
+    "settings.mailSmtpPort": "SMTP port",
+    "settings.mailPortHelp": "The ports opened by whatever terminates TLS. The standard pair is 993 and 465.",
     "settings.undoSeconds": "Undo send window (seconds)",
     "settings.undoSecondsHelp": "How long a sent message can be recalled.\n0 sends immediately.\nMaximum 60.",
     "nav.profile": "My settings",
@@ -1889,6 +1942,49 @@ const STRINGS = {
     "live.newMail": "{n} new message(s)",
     "live.open": "Open Inbox",
     "nav.categories": "Categories",
+    "guide.title": "Setting up a mail program",
+    "guide.help": "These values are the same in every program.\nUse an app password from above, not your labMail sign-in password.",
+    "guide.noHost": "An operator has not set the mail server address yet.\nOnce it is set in system settings, the instructions appear here.",
+    "guide.address": "Mail address",
+    "guide.username": "User name",
+    "guide.imapServer": "Incoming server (IMAP)",
+    "guide.smtpServer": "Outgoing server (SMTP)",
+    "guide.security": "Connection security",
+    "guide.securityValue": "SSL/TLS (not STARTTLS)",
+    "guide.password": "Password",
+    "guide.passwordValue": "An app password from above",
+    "guide.apple": "Apple Mail",
+    "guide.thunderbird": "Thunderbird",
+    "guide.outlook": "Outlook",
+    "guide.ios": "iPhone · iPad",
+    "guide.apple1": "Mail → Settings → Accounts → + at the bottom left → Other Mail Account",
+    "guide.apple2": "Enter {address} and the app password, then Sign In.\nAutomatic setup fails; continue to the next screen anyway.",
+    "guide.apple3": "Account type IMAP, and {host} as both the incoming and outgoing server.",
+    "guide.apple4": "Once the account exists, open Server Settings and turn off \"Automatically manage connection settings\" on both sides.\nIncoming port {imap}, outgoing port {smtp}, TLS/SSL on for both, authentication set to Password.",
+    "guide.apple5": "Save, and you are done when mail appears.",
+    "guide.tb1": "Account Settings → Account Actions → Add Mail Account",
+    "guide.tb2": "Enter {address} and the app password, then press Configure manually.",
+    "guide.tb3": "Incoming IMAP · {host} · port {imap} · SSL/TLS · Normal password\nOutgoing SMTP · {host} · port {smtp} · SSL/TLS · Normal password",
+    "guide.tb4": "The user name is {address} on both sides.\nPress Re-test, then Done.",
+    "guide.ol1": "File → Add Account → enter the address → Advanced options → Let me set up my account manually → IMAP",
+    "guide.ol2": "Incoming {host} port {imap} SSL/TLS, outgoing {host} port {smtp} SSL/TLS",
+    "guide.ol3": "Enter an app password.\nThe sign-in password will fail authentication.",
+    "guide.ios1": "Settings → Apps → Mail → Mail Accounts → Add Account → Other → Add Mail Account",
+    "guide.ios2": "Enter your name, {address} and the app password, then Next.",
+    "guide.ios3": "On the IMAP tab, set both host names to {host} and both user names to {address}.",
+    "guide.ios4": "After saving, check under Settings → Apps → Mail → Accounts that the outgoing port is {smtp} with SSL on.",
+    "appPassword.title": "Mail clients",
+    "appPassword.help": "To use this account in a mail program such as Thunderbird or Apple Mail, create a password for each device.\nOnce you have created one, your labMail sign-in password no longer works in mail programs.\nLosing a device then costs that one entry, and your sign-in password stays as it is.",
+    "appPassword.label": "Name",
+    "appPassword.created": "Created",
+    "appPassword.lastUsed": "Last used",
+    "appPassword.neverUsed": "Never used",
+    "appPassword.revoke": "Revoke",
+    "appPassword.revokeConfirm": "Revoke \"{label}\"?\n\nThe mail program on that device loses its connection immediately.",
+    "appPassword.create": "Create a password",
+    "appPassword.labelPrompt": "Name the device this password is for.\nIt is how you will pick which one to revoke later.",
+    "appPassword.none": "No passwords yet.",
+    "appPassword.createdBody": "\"{label}\" is ready.\n\n{secret}\n\nThis value is not shown again.\nEnter it in your mail program now.",
     "cat.title": "Categories",
     "cat.help": "Group mail your own way.\nOther members never see them.",
     "cat.name": "Name",
@@ -4829,6 +4925,180 @@ function renderTabs(host, tabs, { param = 'tab' } = {}) {
 /** Re-render map, so a tab click can redraw whichever screen owns the strip. */
 const render = {}
 
+/**
+ * Credentials for mail clients, one per device.
+ *
+ * Separate from the sign-in password because a client keeps its copy on disk
+ * and sends it on every connection. Creating one takes the sign-in password
+ * out of the mail path entirely, so the card says so before the member commits.
+ */
+async function renderAppPasswords() {
+  const card = el('div', 'card')
+  card.appendChild(el('div', 'card-h', t('appPassword.title')))
+  const body = el('div', 'card-b')
+  body.appendChild(el('p', 'help', t('appPassword.help')))
+
+  const msg = el('div')
+  msg.style.marginTop = '12px'
+  body.appendChild(msg)
+
+  const table = el('table')
+  table.style.marginTop = '14px'
+  const head = el('tr')
+  for (const key of ['appPassword.label', 'appPassword.created', 'appPassword.lastUsed', '']) {
+    head.appendChild(el('th', null, key ? t(key) : ''))
+  }
+  table.appendChild(el('thead')).appendChild(head)
+  const rows = el('tbody')
+  table.appendChild(rows)
+  body.appendChild(table)
+
+  const create = el('button', 'primary', t('appPassword.create'))
+  create.style.marginTop = '14px'
+  body.appendChild(create)
+  card.appendChild(body)
+
+  async function paint() {
+    rows.innerHTML = ''
+    let list = []
+    try { list = (await api('/api/profile/app-passwords')).passwords }
+    catch (err) { notice(msg, err.message); return }
+
+    if (list.length === 0) {
+      const empty = el('tr')
+      const cell = el('td', 'help', t('appPassword.none'))
+      cell.colSpan = 4
+      empty.appendChild(cell)
+      rows.appendChild(empty)
+      return
+    }
+    for (const item of list) {
+      const tr = el('tr')
+      tr.appendChild(el('td', null, item.label))
+      tr.appendChild(el('td', 'mono', item.createdAt.slice(0, 10)))
+      tr.appendChild(el('td', 'help', item.lastUsedAt ?? t('appPassword.neverUsed')))
+      const actions = el('td')
+      const revoke = el('button', 'bordered danger-text', t('appPassword.revoke'))
+      revoke.onclick = async () => {
+        if (!await askConfirm(t('appPassword.revokeConfirm', { label: item.label }),
+                              { danger: true })) return
+        await withBusy(revoke, null, async () => {
+          try {
+            await api(`/api/profile/app-passwords/${item.id}/revoke`, { method: 'POST' })
+            await paint()
+          } catch (err) { notice(msg, err.message) }
+        })
+      }
+      actions.appendChild(revoke)
+      tr.appendChild(actions)
+      rows.appendChild(tr)
+    }
+  }
+
+  create.onclick = async () => {
+    const label = await askPrompt(t('appPassword.labelPrompt'), '')
+    if (label === null || !label.trim()) return
+    await withBusy(create, null, async () => {
+      try {
+        const made = await api('/api/profile/app-passwords', {
+          method: 'POST', body: JSON.stringify({ label }),
+        })
+        // Shown once: nothing stored can produce it again.
+        await showAlert(t('appPassword.createdBody', { label, secret: made.secret }))
+        await paint()
+      } catch (err) { notice(msg, err.message) }
+    })
+  }
+
+  await paint()
+  return card
+}
+
+/**
+ * Setup instructions, one panel per client.
+ *
+ * Written out rather than detected: autoconfiguration is answered per domain,
+ * and this domain also carries accounts whose mail is not here at all -- they
+ * would be handed settings that cannot work for them.
+ *
+ * The values come from settings, so an operator who moves a port does not
+ * leave every member following instructions that used to be right.
+ */
+function renderClientGuide(cfg) {
+  const card = el('div', 'card')
+  card.appendChild(el('div', 'card-h', t('guide.title')))
+  const body = el('div', 'card-b')
+
+  const host = cfg.host || ''
+  const imap = cfg.imapPort || '993'
+  const smtp = cfg.smtpPort || '465'
+  const address = S.me.alias || ''
+
+  if (!host) {
+    const warn = el('div')
+    notice(warn, t('guide.noHost'), 'warn')
+    body.appendChild(warn)
+    card.appendChild(body)
+    return card
+  }
+
+  body.appendChild(el('p', 'help', t('guide.help')))
+
+  // The same values every panel refers to, stated once and copyable.
+  const summary = el('div', 'card')
+  summary.style.marginTop = '14px'
+  const table = el('table')
+  const rows = el('tbody')
+  // Monospace only where the value is typed into another program; the last
+  // two rows are prose, and setting them in it just spaces the words out.
+  for (const [label, value, verbatim] of [
+    ['guide.address', address, true],
+    ['guide.username', address, true],
+    ['guide.imapServer', `${host}:${imap}`, true],
+    ['guide.smtpServer', `${host}:${smtp}`, true],
+    ['guide.security', t('guide.securityValue'), false],
+    ['guide.password', t('guide.passwordValue'), false],
+  ]) {
+    const tr = el('tr')
+    const name = el('td', 'help', t(label))
+    name.style.width = '160px'
+    tr.appendChild(name)
+    tr.appendChild(el('td', verbatim ? 'mono' : null, value))
+    rows.appendChild(tr)
+  }
+  table.appendChild(rows)
+  summary.appendChild(table)
+  body.appendChild(summary)
+
+  const panels = renderTabs(body, [
+    { id: 'apple', label: 'guide.apple' },
+    { id: 'thunderbird', label: 'guide.thunderbird' },
+    { id: 'outlook', label: 'guide.outlook' },
+    { id: 'ios', label: 'guide.ios' },
+  ], { param: 'client' })
+
+  const steps = {
+    apple: ['guide.apple1', 'guide.apple2', 'guide.apple3', 'guide.apple4', 'guide.apple5'],
+    thunderbird: ['guide.tb1', 'guide.tb2', 'guide.tb3', 'guide.tb4'],
+    outlook: ['guide.ol1', 'guide.ol2', 'guide.ol3'],
+    ios: ['guide.ios1', 'guide.ios2', 'guide.ios3', 'guide.ios4'],
+  }
+  const params = { host, imap, smtp, address }
+  for (const [id, keys] of Object.entries(steps)) {
+    const list = el('ol')
+    list.style.cssText = 'margin:4px 0 0;padding-left:20px;font-size:12.5px;line-height:1.8'
+    for (const key of keys) {
+      const item = el('li', null, t(key, params))
+      item.style.whiteSpace = 'pre-line'
+      list.appendChild(item)
+    }
+    panels[id].appendChild(list)
+  }
+
+  card.appendChild(body)
+  return card
+}
+
 async function renderProfile() {
   const host = $('admin-scroll')
   host.innerHTML = ''
@@ -4839,6 +5109,7 @@ async function renderProfile() {
 
   const panels = renderTabs(wrap, [
     { id: 'account', label: 'profile.account' },
+    { id: 'clients', label: 'appPassword.title' },
     { id: 'categories', label: 'cat.title' },
     { id: 'rules', label: 'rules.title' },
     { id: 'signature', label: 'profile.signature' },
@@ -5022,6 +5293,11 @@ async function renderProfile() {
   addRow.append(addName, addColor, addBtn)
   catBody.appendChild(addRow)
   catCard.appendChild(catBody)
+  panels.clients.appendChild(await renderAppPasswords())
+  try {
+    panels.clients.appendChild(renderClientGuide(await api('/api/profile/mail-settings')))
+  } catch { /* the card is guidance; its absence is not an error */ }
+
   panels.categories.appendChild(catCard)
 
   // ── Rules ──
@@ -5690,6 +5966,12 @@ async function renderSettings() {
       help: 'settings.syncIntervalHelp' },
     { key: 'undo_send_seconds', label: 'settings.undoSeconds', placeholder: '10',
       help: 'settings.undoSecondsHelp' },
+    { key: 'mail_client_host', label: 'settings.mailHost', placeholder: 'mail.example.com',
+      help: 'settings.mailHostHelp' },
+    { key: 'mail_client_imap_port', label: 'settings.mailImapPort', placeholder: '993',
+      help: 'settings.mailPortHelp' },
+    { key: 'mail_client_smtp_port', label: 'settings.mailSmtpPort', placeholder: '465',
+      help: 'settings.mailPortHelp' },
   ]
 
   const inputs = {}

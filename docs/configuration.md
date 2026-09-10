@@ -19,6 +19,16 @@ Set in `.env` (see `.env.example`). Read once at start.
 | `PORT` | no | `8000` | Listening port. Binds `0.0.0.0`, and Compose publishes the same number on the host. |
 | `DATABASE_PATH` | no | `./data/labmail.db` | SQLite file. Set to `/app/data/labmail.db` in the image. |
 | `PUBLIC_URL` | no | — | External origin. Only needed behind a proxy that rewrites `Host`. |
+| `AUDIT_RETENTION_DAYS` | no | `365` | How long access records are kept. 0 keeps everything. |
+| `SMTP_PORT` | no | `0` | SMTP submission port. 0 leaves it off. |
+| `IMAP_PORT` | no | `0` | IMAP port. 0 leaves it off. |
+| `SMTP_HOST` / `IMAP_HOST` | no | `127.0.0.1` | Interface they bind. `0.0.0.0` inside a container. |
+| `SMTP_PROXY_PROTOCOL` / `IMAP_PROXY_PROTOCOL` | no | `false` | Expect a PROXY protocol header on every connection. |
+| `MAIL_BIND` | no | `127.0.0.1` | Interface Compose publishes the plaintext mail ports on. Never one the internet can reach. |
+| `MAIL_TRACE` | no | `false` | Log the IMAP and SMTP exchange, credentials redacted. |
+
+The mail ports carry no TLS of their own. See
+[mail-clients.md](mail-clients.md) for the proxy in front of them.
 
 ### About the bootstrap account
 
@@ -42,6 +52,8 @@ Changes take effect immediately; no restart is needed.
 | OAuth client secret | Write-only. Blank leaves the stored value untouched. |
 | Sync interval | Seconds between sync runs. Minimum 15, default 60. |
 | Undo send window | Seconds a sent message can be recalled. 0 sends immediately, maximum 60, default 10. |
+| Mail client server | Address a mail client connects to. The name of whatever terminates TLS, which may differ from the web address. |
+| IMAP port / SMTP port | Ports that address opens. Default 993 and 465. |
 
 The Google refresh token is also stored here, written by the OAuth callback
 rather than typed in.
@@ -118,7 +130,7 @@ copy it from there into Cloud Console rather than composing it by hand.
 | `npm run migrate` | Apply the schema (also happens on start) |
 | `npm run sync -- --full` | Full backfill |
 | `npm run sync -- --watch` | Standalone sync loop |
-| `npm run provision -- <alias>` | Create or repair an address and its send-as entry |
+| `npm run provision -- <alias>` | Create or repair an address |
 | `npm run admin -- <username>` | Promote an existing account to admin |
 | `npm run seed:demo -- <username>` | Insert sample mail for interface work |
 | `npm run seed:demo -- --clear` | Remove seeded sample mail |

@@ -82,6 +82,19 @@ export function hold(
   return { pendingId: id, undoSeconds: seconds }
 }
 
+/** Message-Ids this member has handed over but that are still in the window. */
+export function heldMessageIds(alias: string): Set<string> {
+  const rows = db.prepare(`SELECT raw FROM pending_sends WHERE alias = ?`).all(alias) as
+    { raw: string }[]
+  const ids = new Set<string>()
+  for (const row of rows) {
+    const raw = Buffer.from(row.raw, 'base64url').toString('binary')
+    const id = /^message-id:\s*(.+)$/im.exec(raw)?.[1]?.trim()
+    if (id) ids.add(id)
+  }
+  return ids
+}
+
 /** Recall a held message. Scoped to the alias; false once the window closed.
  */
 export function cancel(alias: string, id: string): boolean {

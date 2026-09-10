@@ -51,6 +51,10 @@ export const CATALOG = {
     'address.taken': '이미 사용 중인 주소입니다.',
 
     'mailbox.noAddress': '이 계정에는 메일 주소가 없습니다.\n관리자 › 시스템 설정에서 주소를 지정하세요.',
+    'appPassword.noLabel':
+      '이 비밀번호를 쓸 기기 이름을 적어주세요.',
+    'appPassword.tooMany':
+      '앱 비밀번호가 너무 많습니다.\n쓰지 않는 것을 먼저 폐기하세요.',
     'mailbox.sendNotReady': '이 주소로는 메일을 보낼 수 없습니다.\n관리자가 발신 설정을 마치면 사용할 수 있습니다.',
     'mailbox.unknown': '알 수 없는 메일함입니다.',
     'mailbox.unknownFilter': '알 수 없는 필터입니다.',
@@ -142,6 +146,10 @@ export const CATALOG = {
     'address.taken': 'That address is already in use.',
 
     'mailbox.noAddress': 'This account has no mail address.\nAssign one under Admin › System settings.',
+    'appPassword.noLabel':
+      'Name the device this password is for.',
+    'appPassword.tooMany':
+      'Too many app passwords.\nRevoke one you no longer use first.',
     'mailbox.sendNotReady': 'This address cannot send mail yet.\nIt becomes available once an operator finishes the sending setup.',
     'mailbox.unknown': 'Unknown mailbox.',
     'mailbox.unknownFilter': 'Unknown filter.',

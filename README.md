@@ -82,6 +82,8 @@ See [the security model](docs/security-model.md) for the reasoning.
   the same choice
 - **Light, dark, or system** — an explicit choice that overrides the operating
   system and persists per browser
+- **Mail clients** — SMTP submission and IMAP in front of the same per-member
+  view, so Thunderbird, Apple Mail or a phone works with per-device passwords
 - **Single container** — sync runs in-process; SQLite on one volume
 
 
@@ -146,6 +148,9 @@ domain usually will not grant these settings.
 | **Storage is shared** | So is the Gmail API rate limit. |
 | **Isolation is application-level** | A missing query join exposes the whole mailbox. See the [security model](docs/security-model.md). |
 | **The shared password must never be shared** | Anyone who signs in to Gmail directly sees everyone's mail. No code prevents this. |
+| **Sending needs one manual step per member** | The API that registers a send address is restricted to service accounts with domain-wide authority, so an operator adds each member's once. labMail refuses to send until it exists, rather than letting mail go out under the shared account's name. |
+| **Deletion is per member** | Permanent deletion needs a Gmail scope this application does not request. Removing a message hides it from that member; Gmail empties its own Trash on schedule. |
+| **One container, no redundancy** | SQLite on one volume, sync in-process. A restart pauses sync until it comes back. |
 
 ## Development
 
@@ -168,20 +173,18 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for what that implies.
 |---|---|
 | [Security model](docs/security-model.md) | How isolation is enforced, and what it does not cover |
 | [Deployment](docs/deployment.md) | Docker, Google setup, monitoring, backups |
+| [Mail clients](docs/mail-clients.md) | SMTP and IMAP, and the TLS proxy in front of them |
 | [Configuration](docs/configuration.md) | Environment and runtime settings |
-| [Roadmap](docs/roadmap.md) | What is left to do |
 | [Contributing](CONTRIBUTING.md) | Development setup and conventions |
 
 ## Status
 
 Running against a live Google Workspace account. Sync, sending, provisioning,
-attachments, Drive links and the OAuth flow have all been exercised with real
-credentials, alongside 214 unit tests covering ownership resolution, per-member
-state, alias isolation, the rule engine, sign-in throttling, MIME assembly, HTML
-sanitisation and route authorisation.
-
-What is still outstanding — automatic send-as provisioning, push notifications
-instead of polling, redundancy — is in [the roadmap](docs/roadmap.md).
+attachments, Drive links, the OAuth flow and both mail protocols have all been
+exercised with real credentials and a real mail client, alongside 246 unit
+tests covering ownership resolution, per-member state, alias isolation, the
+rule engine, sign-in throttling, MIME assembly, HTML sanitisation, route
+authorisation, and the SMTP and IMAP surfaces.
 
 ## License
 
