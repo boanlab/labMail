@@ -112,6 +112,12 @@ export async function start(port: number = config.port): Promise<Server> {
     Promise.resolve(router.handle(req, res, url)).catch((err: unknown) => {
       const status = statusOf(err)
       if (status >= 500) console.error('[web]', err)
+      // A 4xx from Google reaches the browser as Google's own wording, which
+      // names no call and no id. Logged with the request that produced it, or
+      // the next report is another search.
+      else if (!(err as { key?: unknown })?.key) {
+        console.error(`[web] ${req.method} ${url.pathname} -> ${status}: ${(err as Error).message}`)
+      }
       if (res.headersSent) { res.end(); return }
       const locale = status >= 500 ? DEFAULT_LOCALE : resolveLocale(req)
       json(res, status, { error: messageOf(err, locale) })

@@ -23,7 +23,10 @@ const displayName = process.argv[3] ?? user?.display_name ?? alias.split('@')[0]
 
 const result = await provisionMember(alias, displayName)
 
-db.prepare(`UPDATE users SET provisioned = 1, provision_error = NULL WHERE alias_email = ?`).run(alias)
+// Left at 0 while the send-as entry is missing, or this would open sending
+// from an address Gmail would rewrite to the shared account.
+db.prepare(`UPDATE users SET provisioned = ?, provision_error = ? WHERE alias_email = ?`)
+  .run(result.sendAsError ? 0 : 1, result.sendAsError ?? null, alias)
 
 console.log(`Provisioned ${alias} (${displayName})`)
 if (result.sendAsError) {
