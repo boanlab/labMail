@@ -560,3 +560,24 @@ test('an existing account signs in with its address after migration', async () =
 
   db.prepare(`DELETE FROM users WHERE alias_local IN ('legacy', 'waiting')`).run()
 })
+
+test('a table rebuild leaves other tables referencing it, not its old name', () => {
+  // SQLite carries a rename into other tables' foreign keys. A rebuild that
+  // renames a table out of the way and drops it would leave sessions naming
+  // something gone, and deleting one -- signing out -- would fail.
+  const sql = (db.prepare(
+    `SELECT sql FROM sqlite_master WHERE name = 'sessions'`,
+  ).get() as { sql: string }).sql
+  assert.doesNotMatch(sql, /users_old/, sql)
+  assert.match(sql, /REFERENCES\s+"?users"?\s*\(id\)/)
+
+  // And the operation that failed works: a session can be removed.
+  const user = db.prepare(`SELECT id FROM users LIMIT 1`).get() as { id: number }
+  db.prepare(`
+    INSERT INTO sessions (token, user_id, expires_at)
+    VALUES ('rebuild-probe', ?, datetime('now', '+1 day'))
+  `).run(user.id)
+  assert.equal(
+    db.prepare(`DELETE FROM sessions WHERE token = 'rebuild-probe'`).run().changes, 1,
+  )
+})

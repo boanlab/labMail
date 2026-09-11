@@ -53,6 +53,10 @@ function relaxLocalPartUniqueness(): void {
     .map((c) => c.name).join(', ')
 
   db.pragma('foreign_keys = OFF')
+  // Without this, RENAME rewrites the foreign keys in other tables to follow
+  // the new name -- and sessions would be left referencing a table this
+  // function then drops, which fails the next time one is deleted.
+  db.pragma('legacy_alter_table = ON')
   try {
     db.transaction(() => {
       db.exec(`ALTER TABLE users RENAME TO users_old`)
@@ -63,6 +67,7 @@ function relaxLocalPartUniqueness(): void {
     })()
     console.log(`[db] users rebuilt: local parts are unique per domain (${before} rows)`)
   } finally {
+    db.pragma('legacy_alter_table = OFF')
     db.pragma('foreign_keys = ON')
   }
 }
@@ -102,6 +107,36 @@ function useAddressAsSignInName(): void {
   }
 }
 
+/**
+ * Point a foreign key back at `users` after a rebuild rewrote it.
+ *
+ * SQLite carries a rename into other tables' references, so a table renamed
+ * out of the way and dropped leaves them naming something gone. Deleting a row
+ * then fails -- which is what signing out does.
+ */
+function repairSessionReference(): void {
+  const sql = (db.prepare(`SELECT sql FROM sqlite_master WHERE name = 'sessions'`)
+    .get() as { sql: string } | undefined)?.sql
+  if (!sql?.includes('users_old')) return
+
+  const rows = db.prepare(`SELECT token, user_id, created_at, expires_at FROM sessions`).all() as
+    { token: string; user_id: number; created_at: string; expires_at: string }[]
+  db.pragma('foreign_keys = OFF')
+  try {
+    db.transaction(() => {
+      db.exec(`DROP TABLE sessions`)
+      db.exec(readFileSync(join(here, 'schema.sql'), 'utf8'))
+      const insert = db.prepare(
+        `INSERT INTO sessions (token, user_id, created_at, expires_at) VALUES (?, ?, ?, ?)`,
+      )
+      for (const r of rows) insert.run(r.token, r.user_id, r.created_at, r.expires_at)
+    })()
+    console.log(`[db] sessions now reference users again (${rows.length} kept)`)
+  } finally {
+    db.pragma('foreign_keys = ON')
+  }
+}
+
 export function migrate(): void {
   db.exec(readFileSync(join(here, 'schema.sql'), 'utf8'))
   applyAddedColumns()
@@ -114,6 +149,7 @@ export function migrate(): void {
       ON users (alias_local, COALESCE(alias_domain, ''))
   `)
   useAddressAsSignInName()
+  repairSessionReference()
 }
 
 // On import: modules prepare statements at load time. Idempotent.
