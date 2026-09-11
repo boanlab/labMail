@@ -581,3 +581,30 @@ test('a table rebuild leaves other tables referencing it, not its old name', () 
     db.prepare(`DELETE FROM sessions WHERE token = 'rebuild-probe'`).run().changes, 1,
   )
 })
+
+test('sidebar counts report unread per mailbox, not just the inbox', () => {
+  const alias = 'hong@example.com'
+  const before = mailboxCounts(alias)
+  const id = db.prepare(`
+    INSERT INTO messages (gmail_id, gmail_thread_id, from_addr, to_addrs, cc_addrs,
+                          subject, snippet, body_text, labels, internal_date)
+    VALUES ('badge-spam', 'badge-thr', 'someone@example.org', '["hong@example.com"]', '[]',
+            'spammy', 's', 'b', '["SPAM","UNREAD"]', ?)
+  `).run(Date.now()).lastInsertRowid as number
+  db.prepare(`INSERT INTO message_owners (message_id, alias, source) VALUES (?, ?, 'to')`)
+    .run(id, alias)
+
+  // Measured as a change: this mailbox carries whatever earlier tests left.
+  const withUnread = mailboxCounts(alias)
+  setMessageState(id, alias, 'is_read', true)
+  const afterReading = mailboxCounts(alias)
+
+  assert.equal(
+    (withUnread.spamUnread ?? 0) - (afterReading.spamUnread ?? 0), 1,
+    'a spam badge has to count unread, not total',
+  )
+  assert.equal(withUnread.spam, afterReading.spam, 'reading it does not remove it')
+
+  db.prepare(`DELETE FROM messages WHERE id = ?`).run(id)
+  assert.deepEqual(mailboxCounts(alias), before, 'the mailbox is left as it was found')
+})

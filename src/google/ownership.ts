@@ -71,13 +71,30 @@ function headerValues(headers: Headers, name: string): string[] {
   return headers[name.toLowerCase()] ?? []
 }
 
-/** Sender of Gmail's send-as and forwarding confirmations. */
-const CONFIRMATION_SENDER = 'forwarding-noreply@google.com'
+/** Senders Google uses for send-as and forwarding confirmations. */
+const CONFIRMATION_SENDERS = new Set([
+  'gmail-noreply@google.com',
+  'forwarding-noreply@google.com',
+])
 
-function isSendAsConfirmation(headers: Headers): boolean {
-  for (const raw of headerValues(headers, 'from')) {
-    for (const addr of parseAddressList(raw)) {
-      if (canonicalize(addr.email) === CONFIRMATION_SENDER) return true
+/**
+ * Whether this is a confirmation Google sent about setting up an address.
+ *
+ * A member address is a Group, and a Group rewrites `From` to its own address
+ * on the way through -- so the sender has to be read from `X-Original-Sender`,
+ * which the Group writes. That header is only trusted on a message the Group
+ * actually redistributed, which `X-BeenThere` is the evidence for: an outside
+ * sender could otherwise set it and aim their mail at the operators.
+ */
+export function isSendAsConfirmation(headers: Headers): boolean {
+  const fields = headerValues(headers, 'x-beenthere').length > 0
+    ? ['from', 'x-original-sender']
+    : ['from']
+  for (const field of fields) {
+    for (const raw of headerValues(headers, field)) {
+      for (const addr of parseAddressList(raw)) {
+        if (CONFIRMATION_SENDERS.has(canonicalize(addr.email))) return true
+      }
     }
   }
   return false

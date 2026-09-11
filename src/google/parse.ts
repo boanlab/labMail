@@ -35,6 +35,8 @@ export interface ParsedMessage {
 // otherwise only visible by reading raw source in Gmail.
 const ROUTING_HEADER_NAMES = [
   'x-gm-original-to', 'x-beenthere', 'delivered-to', 'to', 'cc', 'from',
+  // A Group rewrites From to itself, leaving the real sender only here.
+  'x-original-sender',
   'authentication-results',
 ]
 

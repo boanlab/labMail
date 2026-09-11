@@ -8,7 +8,7 @@ import { applyRules } from '../core/rules.ts'
 const selectMessageStmt = db.prepare(`SELECT * FROM messages WHERE id = ?`)
 import { gmail } from './client.ts'
 import { parseMessage, type ParsedMessage } from './parse.ts'
-import { resolveOwners } from './ownership.ts'
+import { isSendAsConfirmation, resolveOwners } from './ownership.ts'
 
 /** Transient failures worth retrying. */
 const RETRYABLE = new Set([403, 429, 500, 502, 503, 504])
@@ -183,6 +183,40 @@ export const storeMessage = db.transaction((
   return row.id
 })
 
+const seenBefore = db.prepare(`SELECT 1 FROM messages WHERE gmail_id = ?`)
+
+/**
+ * Lift a setup confirmation out of Spam.
+ *
+ * The code in it is the only way to finish setting up an address, and a
+ * confirmation Gmail files as spam is one an operator never finds -- the
+ * address then stays unable to send, with nothing to say why. A new domain
+ * has no sending history with this mailbox, which is exactly when Gmail is
+ * most likely to file one there.
+ *
+ * Only on first sight, so an operator who files one as spam themselves is not
+ * argued with on every tick.
+ */
+async function rescueConfirmation(parsed: ParsedMessage): Promise<string[]> {
+  if (!parsed.labels.includes('SPAM')) return parsed.labels
+  if (!isSendAsConfirmation(parsed.headers)) return parsed.labels
+  if (seenBefore.get(parsed.gmailId)) return parsed.labels
+
+  try {
+    const res = await gmail().users.messages.modify({
+      userId: 'me',
+      id: parsed.gmailId,
+      requestBody: { addLabelIds: ['INBOX'], removeLabelIds: ['SPAM'] },
+    })
+    console.log(`[sync] took a setup confirmation out of Spam (${parsed.gmailId})`)
+    return res.data.labelIds ?? parsed.labels
+  } catch (err) {
+    // Worth saying, not worth failing a sync over.
+    console.error(`[sync] could not rescue ${parsed.gmailId}:`, (err as Error).message)
+    return parsed.labels
+  }
+}
+
 async function fetchAndStore(ids: string[], ctx: ReturnType<typeof ownershipContext>): Promise<number> {
   const api = gmail()
   let stored = 0
@@ -191,7 +225,9 @@ async function fetchAndStore(ids: string[], ctx: ReturnType<typeof ownershipCont
       () => api.users.messages.get({ userId: 'me', id, format: 'full' }),
       `messages.get ${id}`,
     )
-    storeMessage(parseMessage(res.data), ctx)
+    const parsed = parseMessage(res.data)
+    parsed.labels = await rescueConfirmation(parsed)
+    storeMessage(parsed, ctx)
     stored++
   })
   return stored

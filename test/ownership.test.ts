@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { resolveOwners, type Headers } from '../src/google/ownership.ts'
+import { isSendAsConfirmation, resolveOwners, type Headers } from '../src/google/ownership.ts'
 import { canonicalize, formatAddress, parseAddressList } from '../src/google/addresses.ts'
 
 const ctx = {
@@ -237,19 +237,47 @@ test('a send-as confirmation goes to the operators, not to the member', () => {
   // code only an operator can use.
   const owners = resolveOwners({
     headers: {
-      from: ['Gmail Team <forwarding-noreply@google.com>'],
+      from: ['Gmail Team <gmail-noreply@google.com>'],
       to: ['hong@example.com'],
-      subject: ['Gmail Confirmation - Send Mail As hong@example.com'],
     },
     labels: ['INBOX'],
   }, { ...ctx, adminAliases: ['boan@example.com'] })
   assert.deepEqual(owners, [{ alias: 'boan@example.com', source: 'confirmation' }])
 })
 
+test('a confirmation redistributed by a Group is still recognised', () => {
+  // A member address is a Group, and the Group rewrites From to itself, so the
+  // sender survives only in X-Original-Sender.
+  const owners = resolveOwners({
+    headers: {
+      from: ["'Team' via Hong <hong@example.com>"],
+      'x-original-sender': ['gmail-noreply@google.com'],
+      'x-beenthere': ['hong@example.com; h="abc"'],
+      to: ['hong@example.com'],
+    },
+    labels: ['INBOX'],
+  }, { ...ctx, adminAliases: ['boan@example.com'] })
+  assert.deepEqual(owners, [{ alias: 'boan@example.com', source: 'confirmation' }])
+})
+
+test('X-Original-Sender alone does not divert a message', () => {
+  // Without a Group's own header there is nothing to say the Group wrote it,
+  // and an outside sender must not be able to aim mail at the operators.
+  const owners = resolveOwners({
+    headers: {
+      from: ['someone@example.org'],
+      'x-original-sender': ['gmail-noreply@google.com'],
+      to: ['hong@example.com'],
+    },
+    labels: ['INBOX'],
+  }, { ...ctx, adminAliases: ['boan@example.com'] })
+  assert.deepEqual(owners.map((o) => o.alias), ['hong@example.com'])
+})
+
 test('with no operator a confirmation falls back to ordinary attribution', () => {
   const owners = resolveOwners({
     headers: {
-      from: ['Gmail Team <forwarding-noreply@google.com>'],
+      from: ['Gmail Team <gmail-noreply@google.com>'],
       to: ['hong@example.com'],
     },
     labels: ['INBOX'],
@@ -284,4 +312,26 @@ test('a domain the deployment does not issue is still an outside party', () => {
     headers: { to: ['hong@elsewhere.test'] }, labels: ['INBOX'],
   }, { ...ctx, knownAliases: new Set([...ctx.knownAliases, 'hong@elsewhere.test']) })
   assert.deepEqual(owners, [])
+})
+
+test('a confirmation is identified only with a Group vouching for the sender', () => {
+  // The predicate the Spam rescue keys off. It must not be satisfiable by an
+  // outside sender setting the header themselves.
+  assert.equal(isSendAsConfirmation({ from: ['gmail-noreply@google.com'] }), true)
+  assert.equal(
+    isSendAsConfirmation({
+      from: ["'Team' via Hong <hong@example.com>"],
+      'x-original-sender': ['gmail-noreply@google.com'],
+      'x-beenthere': ['hong@example.com; h="abc"'],
+    }),
+    true,
+  )
+  assert.equal(
+    isSendAsConfirmation({
+      from: ['someone@example.org'],
+      'x-original-sender': ['gmail-noreply@google.com'],
+    }),
+    false,
+  )
+  assert.equal(isSendAsConfirmation({ from: ['someone@example.org'] }), false)
 })

@@ -939,7 +939,7 @@ kbd { font-family: var(--font); font-size: 11px; font-weight: 600; min-width: 20
       </button>
       <button class="nav-item" data-mailbox="archive">
         <svg class="icon" viewBox="0 0 24 24"><use href="#i-archive"/></svg>
-        <span class="nav-label" data-i18n="nav.archive"></span>
+        <span class="nav-label" data-i18n="nav.archive"></span><span class="badge hidden" data-count="archiveUnread"></span>
       </button>
       <button class="nav-item" data-mailbox="drafts">
         <svg class="icon" viewBox="0 0 24 24"><use href="#i-draft"/></svg>
@@ -947,11 +947,11 @@ kbd { font-family: var(--font); font-size: 11px; font-weight: 600; min-width: 20
       </button>
       <button class="nav-item" data-mailbox="spam">
         <svg class="icon" viewBox="0 0 24 24"><use href="#i-spam"/></svg>
-        <span class="nav-label" data-i18n="nav.spam"></span><span class="badge hidden" data-count="spam"></span>
+        <span class="nav-label" data-i18n="nav.spam"></span><span class="badge hidden" data-count="spamUnread"></span>
       </button>
       <button class="nav-item" data-mailbox="trash">
         <svg class="icon" viewBox="0 0 24 24"><use href="#i-trash"/></svg>
-        <span class="nav-label" data-i18n="nav.trash"></span>
+        <span class="nav-label" data-i18n="nav.trash"></span><span class="badge hidden" data-count="trashUnread"></span>
       </button>
 
       <div id="nav-categories" class="hidden">
@@ -3044,12 +3044,19 @@ function renderRow(msg, index) {
   return row
 }
 
+/**
+ * Sidebar badges.
+ *
+ * Unread counts, except Drafts, where the total is what a member wants: a
+ * draft is something they wrote, so it is never waiting to be read.
+ */
 function paintCounts() {
-  const unread = S.counts.unread ?? 0
-  document.querySelectorAll('[data-count="unread"]').forEach((b) => {
-    b.textContent = unread
-    b.classList.toggle('hidden', unread === 0)
+  document.querySelectorAll('[data-count]').forEach((badge) => {
+    const value = S.counts[badge.dataset.count] ?? 0
+    badge.textContent = value
+    badge.classList.toggle('hidden', value === 0)
   })
+  const unread = S.counts.unread ?? 0
   document.title = unread > 0 ? `labMail (${unread})` : 'labMail'
 }
 

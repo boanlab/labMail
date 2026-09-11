@@ -295,6 +295,10 @@ export function mailboxCounts(alias: string): Record<string, number> {
       SUM(CASE WHEN ${MAILBOX_FILTER.archive} AND ${RECEIVED} THEN 1 ELSE 0 END) AS archive,
       SUM(CASE WHEN ${MAILBOX_FILTER.trash} THEN 1 ELSE 0 END) AS trash,
       SUM(CASE WHEN ${MAILBOX_FILTER.spam} THEN 1 ELSE 0 END) AS spam,
+      SUM(CASE WHEN ${MAILBOX_FILTER.archive} AND ${RECEIVED} AND NOT ${READ}
+               THEN 1 ELSE 0 END) AS archiveUnread,
+      SUM(CASE WHEN ${MAILBOX_FILTER.trash} AND NOT ${READ} THEN 1 ELSE 0 END) AS trashUnread,
+      SUM(CASE WHEN ${MAILBOX_FILTER.spam} AND NOT ${READ} THEN 1 ELSE 0 END) AS spamUnread,
       SUM(CASE WHEN ${MAILBOX_FILTER.drafts} THEN 1 ELSE 0 END) AS drafts,
       SUM(CASE WHEN ${ORDINARY} AND ${STARRED} THEN 1 ELSE 0 END) AS starred
     ${SCOPED_FROM}
