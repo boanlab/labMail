@@ -38,7 +38,7 @@ export interface RewriteResult {
 }
 
 /**
- * Put the submitted message under the sender labMail authenticated.
+ * Put the submitted message under the sender LabMail authenticated.
  *
  * The client's `From` is discarded rather than checked: trusting it lets any
  * member send as any other.

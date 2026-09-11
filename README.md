@@ -1,4 +1,4 @@
-# labMail
+# LabMail
 
 [![CI](https://github.com/boanlab/labMail/actions/workflows/ci.yml/badge.svg)](https://github.com/boanlab/labMail/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
@@ -9,8 +9,8 @@ A shared mailbox collects everything a team receives in one place, which keeps
 correspondence continuous as people join and leave but gives no one their own
 view of it. Gmail offers no way to partition a single mailbox per person.
 
-labMail is that partition. It sits in front of one Workspace account: members
-sign in to labMail, see only the mail addressed to their own alias, and send as
+LabMail is that partition. It sits in front of one Workspace account: members
+sign in to LabMail, see only the mail addressed to their own alias, and send as
 themselves. Receiving, sending, and storage all stay with Gmail; there is no
 separate mail server, no forwarding service, and no outbound relay to run.
 
@@ -43,7 +43,7 @@ separate mail server, no forwarding service, and no outbound relay to run.
                     │                      control  │
                     └───────────────┬───────────────┘
                                     ▼
- browser ──▶ labMail session ──▶ queries scoped to the session alias
+ browser ──▶ LabMail session ──▶ queries scoped to the session alias
 ```
 
 **Isolation does not use Gmail search queries.** A sync worker resolves who each
@@ -98,7 +98,7 @@ See [the security model](docs/security-model.md) for the reasoning.
 - **Keyboard** — `j`/`k` to move, `e` archive, `#` trash, `r` reply, `c` compose,
   `?` for the rest.
 - **Members** — approving a signup fixes the address and makes it deliverable.
-  Sending stays closed until an operator adds the send-as entry, which labMail
+  Sending stays closed until an operator adds the send-as entry, which LabMail
   cannot create for itself.
 - **System settings** — Google is configured here, not in environment files, and
   a numbered checklist links straight to the console pages each step needs.
@@ -111,7 +111,7 @@ See [the security model](docs/security-model.md) for the reasoning.
 
 ```bash
 git clone https://github.com/boanlab/labMail.git
-cd labMail
+cd LabMail
 cp .env.example .env
 echo "ADMIN_PASSWORD=$(openssl rand -base64 24)" >> .env
 docker compose up -d --build
@@ -137,7 +137,7 @@ Full instructions: [docs/deployment.md](docs/deployment.md).
 - Docker with Compose, or Node 22+ for a local run
 - A Google Workspace domain **with admin console access**
 
-The second is not negotiable. labMail depends on domain-level default routing,
+The second is not negotiable. LabMail depends on domain-level default routing,
 the `X-Gm-Original-To` header, and DKIM. A personal Gmail account cannot be the
 MX for a custom domain, and a centrally administered university or corporate
 domain usually will not grant these settings.
@@ -150,7 +150,7 @@ domain usually will not grant these settings.
 | **Storage is shared** | So is the Gmail API rate limit. |
 | **Isolation is application-level** | A missing query join exposes the whole mailbox. See the [security model](docs/security-model.md). |
 | **The shared password must never be shared** | Anyone who signs in to Gmail directly sees everyone's mail. No code prevents this. |
-| **Sending needs one manual step per member** | The API that registers a send address is restricted to service accounts with domain-wide authority, so an operator adds each member's once. labMail refuses to send until it exists, rather than letting mail go out under the shared account's name. |
+| **Sending needs one manual step per member** | The API that registers a send address is restricted to service accounts with domain-wide authority, so an operator adds each member's once. LabMail refuses to send until it exists, rather than letting mail go out under the shared account's name. |
 | **Deletion is per member** | Permanent deletion needs a Gmail scope this application does not request. Removing a message hides it from that member; Gmail empties its own Trash on schedule. |
 | **One container, no redundancy** | SQLite on one volume, sync in-process. A restart pauses sync until it comes back. |
 

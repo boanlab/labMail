@@ -186,7 +186,7 @@ export function reject(userId: number): void {
 /**
  * Bring `provisioned` in line with the send-as entries that exist.
  *
- * Send-as entries are added by hand outside labMail, so this runs on every
+ * Send-as entries are added by hand outside LabMail, so this runs on every
  * sync tick. Grants and revokes both: a listing that succeeds is authoritative,
  * and one that fails throws without touching anything.
  */

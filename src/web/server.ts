@@ -64,7 +64,7 @@ async function syncTick(): Promise<void> {
     const result = currentHistoryId() ? await incrementalSync() : { changed: await fullSync() }
     const assigned = reresolveUnassigned()
     await linkDrafts()
-    // Send-as entries change outside labMail; one request per tick notices.
+    // Send-as entries change outside LabMail; one request per tick notices.
     await reconcileSendAs()
     if (result.changed > 0 || assigned > 0) {
       console.log(`[sync] ${result.changed} changed, ${assigned} newly attributed`)
@@ -150,7 +150,7 @@ export async function start(port: number = config.port): Promise<Server> {
   await new Promise<void>((ready) => server.listen(port, '0.0.0.0', ready))
 
   if (port === config.port) {
-    console.log(`labMail listening on http://0.0.0.0:${port}`)
+    console.log(`LabMail listening on http://0.0.0.0:${port}`)
     // Started alongside rather than in its own process: it shares the database,
     // the send path and the throttle, and a deployment stays one container.
     if (config.smtpPort > 0) {

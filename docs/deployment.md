@@ -5,7 +5,7 @@
 - Docker with Compose, or Node 22+ for a local run
 - A Google Workspace domain **where you have admin console access**
 
-That second requirement is not optional. labMail needs default routing, the
+That second requirement is not optional. LabMail needs default routing, the
 `X-Gm-Original-To` header, and DKIM configured at the domain level. If your
 domain is administered by a central IT department that will not grant these,
 the usual answer is a small separate Workspace tenant for your own domain.
@@ -47,7 +47,7 @@ Three separate settings, all under **Apps → Google Workspace → Gmail** at
 <https://admin.google.com>. They are easy to conflate — the envelope rewrite and
 the header are two different rules on the same page — and each one's absence
 produces the same symptom: mail that arrives in Gmail but never reaches a
-member in labMail.
+member in LabMail.
 
 Before any of them, **the shared account must exist**: the mailbox all mail
 actually lands in, and the account you connect in system settings.
@@ -77,7 +77,7 @@ Do not try to do both in one setting.
 | 2. Also apply to all account types | **All three**: Users, Groups, and unrecognized / catch-all accounts. |
 | Headers | **Add X-Gm-Original-To header** |
 
-**Checking "Groups" is not optional.** labMail creates each member address as a
+**Checking "Groups" is not optional.** LabMail creates each member address as a
 Google Group with the shared mailbox as its only member (see
 `src/google/provisioning.ts`), so every approved member's mail arrives as group
 mail. Leaving that box unchecked means the header lands on everything *except*

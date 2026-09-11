@@ -1,12 +1,12 @@
 # Security model
 
-This document explains what labMail protects, what it does not, and why.
+This document explains what LabMail protects, what it does not, and why.
 [SECURITY.md](../SECURITY.md) covers vulnerability reporting.
 
-## What labMail is
+## What LabMail is
 
 One Google Workspace mailbox presented to several people as if each had their
-own address. Members authenticate to labMail, never to Google.
+own address. Members authenticate to LabMail, never to Google.
 
 ## Isolation is enforced in application code
 
@@ -93,7 +93,7 @@ A missing join is not a display bug. It exposes the entire mailbox.
 
 If your organization needs genuine per-user isolation — regulatory requirements,
 or members who are not mutually trusted — provision real Workspace accounts
-instead. labMail suits a mailbox that has a real reason to be shared, such as
+instead. LabMail suits a mailbox that has a real reason to be shared, such as
 continuity of correspondence when members join and leave.
 
 ## Operational rules that code cannot enforce
@@ -142,7 +142,7 @@ reconciled on every sync tick, in both directions.
 
 HTML message bodies render in an iframe with an empty `sandbox` attribute: no
 scripts, no forms, no top-level navigation, and a null origin. A message cannot
-reach labMail's cookies or DOM.
+reach LabMail's cookies or DOM.
 
 Display names and header values built from user input have CR and LF stripped
 before they enter a MIME message, so a crafted name cannot inject headers such
@@ -150,7 +150,7 @@ as an extra `Bcc`.
 
 ## OAuth and credentials
 
-labMail requests `gmail.modify` rather than full mail access, so a bug cannot
+LabMail requests `gmail.modify` rather than full mail access, so a bug cannot
 permanently destroy mail — deletions move to Trash and remain recoverable.
 `gmail.settings.basic` reads the send-as entries and `gmail.settings.sharing`
 removes one when a member leaves; `admin.directory.group` creates member

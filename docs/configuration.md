@@ -1,6 +1,6 @@
 # Configuration
 
-labMail splits configuration in two, along one line: what must exist before
+LabMail splits configuration in two, along one line: what must exist before
 anyone can sign in goes in the environment; everything else is entered through
 the admin UI and stored in the database.
 
@@ -32,7 +32,7 @@ The mail ports carry no TLS of their own. See
 
 ### About the bootstrap account
 
-It is a seed, not a source of truth. On start, labMail creates the account if it
+It is a seed, not a source of truth. On start, LabMail creates the account if it
 is missing and ensures it is an active admin — but it never resets a password
 that was changed afterward.
 
@@ -61,7 +61,7 @@ rather than typed in.
 ### Sending needs one manual step
 
 A member's address is a Google Group delivering to the shared account, which
-labMail creates on approval. Sending as that address needs a matching send-as
+LabMail creates on approval. Sending as that address needs a matching send-as
 entry, and `gmail.users.settings.sendAs.create` is restricted to service
 accounts holding domain-wide authority -- it refuses a user token whatever
 admin role stands behind it. An operator adds the entry once, by hand, under

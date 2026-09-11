@@ -27,8 +27,8 @@ export async function createGroupAlias(aliasEmail: string, displayName: string):
     const created = await api.groups.insert({
       requestBody: {
         email: aliasEmail,
-        name: `${displayName} (labMail)`,
-        description: 'labMail per-member address. Delivers to the shared mailbox.',
+        name: `${displayName} (LabMail)`,
+        description: 'LabMail per-member address. Delivers to the shared mailbox.',
       },
     })
     groupId = created.data.id ?? undefined
@@ -64,8 +64,8 @@ export interface SendAsResult {
  * Send-as addresses the shared account can currently send from.
  *
  * Read-only, and unlike creating one it needs no domain-wide delegation — so
- * an alias added by hand in Gmail settings is visible to labMail even though
- * labMail could not have created it.
+ * an alias added by hand in Gmail settings is visible to LabMail even though
+ * LabMail could not have created it.
  */
 export async function listSendAsAliases(): Promise<Set<string>> {
   const res = await gmail().users.settings.sendAs.list({ userId: 'me' })
@@ -85,7 +85,7 @@ export async function provisionMember(aliasEmail: string, displayName: string): 
   // here is still fatal to it.
   await createGroupAlias(aliasEmail, displayName)
 
-  // Sending is a separate question, and not one labMail can settle: the
+  // Sending is a separate question, and not one LabMail can settle: the
   // send-as entry has to be added by hand. Report it as missing unless it is
   // already there, and let the sync tick notice when it appears.
   const registered = await listSendAsAliases()

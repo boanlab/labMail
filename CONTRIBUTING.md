@@ -1,4 +1,4 @@
-# Contributing to labMail
+# Contributing to LabMail
 
 Thanks for taking the time to contribute.
 
@@ -6,7 +6,7 @@ Thanks for taking the time to contribute.
 
 ```bash
 git clone <your-fork>
-cd labMail
+cd LabMail
 npm install
 cp .env.example .env
 echo "ADMIN_PASSWORD=$(openssl rand -base64 24)" >> .env

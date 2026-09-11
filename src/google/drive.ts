@@ -4,9 +4,9 @@ import { db, getDriveItemForAlias, listDriveChildren, driveUsage, type DriveRow 
 import { sharedAccountAuth } from './client.ts'
 
 const FOLDER_MIME = 'application/vnd.google-apps.folder'
-const ROOT_FOLDER_NAME = 'labMail'
+const ROOT_FOLDER_NAME = 'LabMail'
 
-/** Marks every item labMail creates, so ownership survives a lost database. */
+/** Marks every item LabMail creates, so ownership survives a lost database. */
 const OWNER_PROPERTY = 'labmailOwner'
 
 function drive() {
@@ -72,7 +72,7 @@ export async function ensureHomeFolder(userId: number, alias: string): Promise<s
 
   const api = drive()
 
-  // One labMail root, rather than member folders across Drive's top level.
+  // One LabMail root, rather than member folders across Drive's top level.
   const existingRoot = await api.files.list({
     q: `name = '${ROOT_FOLDER_NAME}' and mimeType = '${FOLDER_MIME}' and trashed = false`,
     fields: 'files(id)',
@@ -141,7 +141,7 @@ export async function listFolder(alias: string, folderId?: string) {
     return record(alias, file, parentId)
   })
 
-  // Drop rows for anything removed outside labMail.
+  // Drop rows for anything removed outside LabMail.
   const known = listDriveChildren(alias, parentId)
   const stale = known.filter((row: DriveRow) => !seen.has(row.file_id))
   if (stale.length) {

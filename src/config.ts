@@ -61,7 +61,7 @@ export const GOOGLE_SCOPES = [
   'https://www.googleapis.com/auth/admin.directory.group',
   // Directory reads: whether an address is already claimed.
   'https://www.googleapis.com/auth/admin.directory.user',
-  // drive.file, not drive: reaches only what labMail created.
+  // drive.file, not drive: reaches only what LabMail created.
   'https://www.googleapis.com/auth/drive.file',
 ]
 

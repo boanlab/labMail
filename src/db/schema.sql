@@ -1,4 +1,4 @@
--- labMail schema.
+-- LabMail schema.
 --
 -- Access-control boundary: `message_owners`. Reads reach a message only by
 -- joining it on the session alias.
@@ -102,7 +102,7 @@ CREATE TABLE IF NOT EXISTS message_state (
   is_read     INTEGER NOT NULL DEFAULT 0,
   is_starred  INTEGER NOT NULL DEFAULT 0,
   is_archived INTEGER NOT NULL DEFAULT 0,
-  -- Gone from labMail for this member. Gmail keeps the message — permanent
+  -- Gone from LabMail for this member. Gmail keeps the message — permanent
   -- deletion needs a scope this app deliberately does not ask for — so this is
   -- what "delete" can honestly mean here: it stops being theirs to see, and
   -- Gmail removes it from the Trash on its own schedule.

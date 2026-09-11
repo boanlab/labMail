@@ -9,7 +9,7 @@ import { verifyMailCredential, type MailIdentity } from './credentials.ts'
 import { rewriteSubmission } from './rewrite.ts'
 
 /** Submission only: this server never accepts mail for delivery elsewhere. */
-const GREETING = 'labMail submission'
+const GREETING = 'LabMail submission'
 
 const MAX_MESSAGE_BYTES = 26_214_400   // 25 MiB, the limit Gmail itself imposes
 const MAX_RECIPIENTS = 100
@@ -158,14 +158,14 @@ async function command(s: Session, line: string): Promise<void> {
 
   switch (verb) {
     case 'EHLO':
-      write(s, '250-labMail')
+      write(s, '250-LabMail')
       write(s, `250-SIZE ${MAX_MESSAGE_BYTES}`)
       write(s, '250-8BITMIME')
       write(s, '250-AUTH PLAIN LOGIN')
       write(s, '250 HELP')
       return
     case 'HELO':
-      write(s, '250 labMail')
+      write(s, '250 LabMail')
       return
 
     case 'AUTH': {

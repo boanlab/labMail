@@ -132,7 +132,7 @@ const clearAttachmentsStmt = db.prepare(`DELETE FROM attachments WHERE message_i
  * Persist a message and its ownership. Rows are additive; revoking access is an
  * explicit admin action.
  *
- * `author` names the sender for mail labMail itself put on the wire. Headers
+ * `author` names the sender for mail LabMail itself put on the wire. Headers
  * cannot serve: Gmail rewrites From to the shared account for any address with
  * no send-as entry, leaving the message owned by nobody.
  */
@@ -342,7 +342,7 @@ export async function incrementalSync(): Promise<{ changed: number; fellBack: bo
   return { changed: stored + deleted.size, fellBack: false }
 }
 
-/** Link drafts written outside labMail. Imported lazily to break a cycle. */
+/** Link drafts written outside LabMail. Imported lazily to break a cycle. */
 export async function linkDrafts(): Promise<number> {
   const { reconcileDraftIds } = await import('./drafts.ts')
   return reconcileDraftIds()

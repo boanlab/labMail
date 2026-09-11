@@ -204,7 +204,7 @@ test('APPEND to Sent is accepted for mail this member sent', async () => {
   assert.ok(out.some((l) => /^a3 OK \[APPENDUID/.test(l)), out.join('\n'))
 })
 
-test('APPEND of mail that never went through labMail is refused', async () => {
+test('APPEND of mail that never went through LabMail is refused', async () => {
   const body = 'Message-ID: <not-ours@example.org>\r\nSubject: s\r\n\r\nbody'
   const out = await session([
     'a1 LOGIN hong@example.com hong-password-1',

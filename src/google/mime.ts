@@ -29,7 +29,7 @@ export interface OutgoingMessage {
 }
 
 function boundary(tag: string): string {
-  return `----=_labMail_${tag}_${Math.random().toString(36).slice(2)}${Date.now().toString(36)}`
+  return `----=_LabMail_${tag}_${Math.random().toString(36).slice(2)}${Date.now().toString(36)}`
 }
 
 /**

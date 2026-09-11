@@ -285,7 +285,7 @@ async function command(s: Session, tag: string, name: string, rest: string): Pro
   }
   if (verb === 'NOOP' || verb === 'CHECK') { send(s, `${tag} OK ${verb} completed`); return }
   if (verb === 'LOGOUT') {
-    send(s, '* BYE labMail signing off')
+    send(s, '* BYE LabMail signing off')
     send(s, `${tag} OK LOGOUT completed`)
     s.socket.end()
     return
@@ -562,7 +562,7 @@ async function command(s: Session, tag: string, name: string, rest: string): Pro
         send(s, `${tag} OK [APPENDUID ${s.selected?.uidvalidity ?? 0} 1] APPEND completed`)
         return
       }
-      send(s, `${tag} NO [CANNOT] This mailbox only holds mail sent through labMail`)
+      send(s, `${tag} NO [CANNOT] This mailbox only holds mail sent through LabMail`)
       return
     }
 
@@ -591,7 +591,7 @@ export function startImap(
 
     let buffer = ''
     let awaitingProxy = proxyProtocol
-    if (!awaitingProxy) send(s, `* OK [CAPABILITY ${CAPABILITIES}] labMail ready`)
+    if (!awaitingProxy) send(s, `* OK [CAPABILITY ${CAPABILITIES}] LabMail ready`)
     let queue = Promise.resolve()
 
     socket.on('data', (chunk) => {
@@ -603,7 +603,7 @@ export function startImap(
         s.ip = buffer.split(' ')[2] ?? ''
         buffer = buffer.slice(end + 2)
         awaitingProxy = false
-        send(s, `* OK [CAPABILITY ${CAPABILITIES}] labMail ready`)
+        send(s, `* OK [CAPABILITY ${CAPABILITIES}] LabMail ready`)
       }
 
       // A literal is a byte count, not a line: it can contain CRLF and must be

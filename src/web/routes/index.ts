@@ -34,6 +34,7 @@ function registerAppShell(router: Router): void {
   }
   router.get('/', serveShell)
   router.get('/index.html', serveShell)
+  registerInstallable(router)
   for (const mailbox of MAILBOXES) {
     router.get(`/${mailbox}`, serveShell)
     // A thread open in the reader is its own address, so a reload keeps it.
@@ -42,6 +43,57 @@ function registerAppShell(router: Router): void {
   for (const view of VIEWS) router.get(`/${view}`, serveShell)
   // A category is a mailbox-shaped view addressed by id.
   router.get('/category/:id', serveShell)
+}
+
+/** Mark, in the browser's tab and on a home screen. */
+const ICON = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+  <rect width="24" height="24" rx="5" fill="#2563eb"/>
+  <path d="M5 8.5h14v8H5z" fill="none" stroke="#fff" stroke-width="1.6"
+        stroke-linejoin="round"/>
+  <path d="M5 9l7 5 7-5" fill="none" stroke="#fff" stroke-width="1.6"
+        stroke-linecap="round" stroke-linejoin="round"/>
+</svg>`
+
+/**
+ * What a browser needs before it will offer to install the app.
+ *
+ * A manifest, an icon, and a service worker with a fetch handler. The handler
+ * deliberately answers nothing: LabMail is a live view of a mailbox, and a
+ * cache serving yesterday's mail would be worse than no offline support at
+ * all. Its only job is to satisfy the criterion.
+ */
+function registerInstallable(router: Router): void {
+  router.get('/manifest.webmanifest', ({ res }) => {
+    res.writeHead(200, { 'content-type': 'application/manifest+json; charset=utf-8' })
+    res.end(JSON.stringify({
+      name: 'LabMail',
+      short_name: 'LabMail',
+      start_url: '/',
+      scope: '/',
+      display: 'standalone',
+      background_color: '#ffffff',
+      theme_color: '#2563eb',
+      icons: [{ src: '/icon.svg', sizes: 'any', type: 'image/svg+xml', purpose: 'any maskable' }],
+    }))
+  })
+
+  router.get('/icon.svg', ({ res }) => {
+    res.writeHead(200, {
+      'content-type': 'image/svg+xml; charset=utf-8',
+      'cache-control': 'public, max-age=86400',
+    })
+    res.end(ICON)
+  })
+
+  router.get('/sw.js', ({ res }) => {
+    res.writeHead(200, {
+      'content-type': 'text/javascript; charset=utf-8',
+      'cache-control': 'no-cache',
+    })
+    // No respondWith: every request goes to the network exactly as it would
+    // without a worker at all.
+    res.end("self.addEventListener('fetch', () => {})\n")
+  })
 }
 
 /** Every route the server exposes, in one place. */

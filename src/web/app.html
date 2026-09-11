@@ -4,7 +4,11 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="color-scheme" content="light dark">
-<title>labMail</title>
+<title>LabMail</title>
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="icon" href="/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/icon.svg">
+<meta name="theme-color" content="#2563eb">
 <style>
 /* ── Tokens: one accent, a neutral ramp, hairline separators. ─────────────── */
 :root {
@@ -861,7 +865,7 @@ kbd { font-family: var(--font); font-size: 11px; font-weight: 600; min-width: 20
 <div id="auth">
   <div class="auth-card">
     <div class="auth-mark"><svg viewBox="0 0 24 24"><use href="#i-mail"/></svg></div>
-    <h1>labMail</h1>
+    <h1>LabMail</h1>
     <p class="sub" id="auth-sub" data-i18n="auth.subtitle"></p>
     <div id="auth-notice"></div>
 
@@ -920,7 +924,7 @@ kbd { font-family: var(--font); font-size: 11px; font-weight: 600; min-width: 20
     <div class="side-head">
       <div class="brand">
         <span class="brand-mark"><svg viewBox="0 0 24 24"><use href="#i-mail"/></svg></span>
-        labMail
+        LabMail
       </div>
       <button class="primary" id="btn-compose" style="width:100%;justify-content:center;padding:7px">
         <svg class="icon-sm" viewBox="0 0 24 24" style="stroke:#fff;fill:none"><use href="#i-send"/></svg>
@@ -1051,6 +1055,7 @@ kbd { font-family: var(--font); font-size: 11px; font-weight: 600; min-width: 20
       </button>
       <div id="reader-actions" style="display:flex;gap:2px;align-items:center"></div>
       <div class="bar-right">
+        <button id="btn-install" class="hidden" data-i18n-title="install.title"><svg class="icon" viewBox="0 0 24 24"><use href="#i-download"/></svg></button>
         <button id="btn-sync" data-i18n-title="reader.syncTitle"><svg class="icon" viewBox="0 0 24 24"><use href="#i-refresh"/></svg></button>
         <button id="btn-lang" class="chip-btn" data-i18n-title="nav.language"><span id="lang-code"></span></button>
         <button id="btn-theme" data-i18n-title="theme.toggle"><svg class="icon" viewBox="0 0 24 24"><use href="#i-auto" id="theme-glyph"/></svg></button>
@@ -1067,6 +1072,7 @@ kbd { font-family: var(--font); font-size: 11px; font-weight: 600; min-width: 20
       </button>
       <span id="admin-title" style="font-weight:650;font-size:13.5px"></span>
       <div class="bar-right">
+        <button id="btn-install2" class="hidden" data-i18n-title="install.title"><svg class="icon" viewBox="0 0 24 24"><use href="#i-download"/></svg></button>
         <button id="btn-lang2" class="chip-btn" data-i18n-title="nav.language"><span id="lang-code2"></span></button>
         <button id="btn-theme2" data-i18n-title="theme.toggle"><svg class="icon" viewBox="0 0 24 24"><use href="#i-auto" id="theme-glyph2"/></svg></button>
       </div>
@@ -1268,6 +1274,9 @@ const STRINGS = {
     "drive.tooBigForMail": "25MB를 넘어 Drive에 올리고 링크로 첨부했습니다",
     "drive.modified": "수정 {when}",
     "profile.nameSaved": "표시 이름을 저장했습니다",
+    "install.title": "앱으로 설치",
+    "install.done": "LabMail이 설치되었습니다.",
+    "install.appleSteps": "Safari에서는 아래 순서로 설치합니다.\n\n1. 아래쪽 공유 버튼을 누릅니다.\n2. \"홈 화면에 추가\"를 고릅니다.\n3. 오른쪽 위 \"추가\"를 누릅니다.",
     "theme.toggle": "화면 테마",
     "theme.system": "시스템 설정 따름",
     "theme.light": "밝게",
@@ -1363,7 +1372,7 @@ const STRINGS = {
     "live.open": "받은편지함 열기",
     "nav.categories": "카테고리",
     "guide.title": "메일 프로그램 설정 방법",
-    "guide.help": "아래 값은 모든 프로그램에서 같습니다.\n비밀번호는 위에서 만든 앱 비밀번호를 쓰세요. labMail 로그인 비밀번호가 아닙니다.",
+    "guide.help": "아래 값은 모든 프로그램에서 같습니다.\n비밀번호는 위에서 만든 앱 비밀번호를 쓰세요. LabMail 로그인 비밀번호가 아닙니다.",
     "guide.noHost": "관리자가 아직 메일 서버 주소를 지정하지 않았습니다.\n시스템 설정에서 지정하면 여기에 설정 방법이 표시됩니다.",
     "guide.address": "메일 주소",
     "guide.username": "사용자 이름",
@@ -1394,7 +1403,7 @@ const STRINGS = {
     "guide.ios3": "IMAP 탭에서 수신·발신 서버 모두 호스트 이름을 {host} 로, 사용자 이름을 {address} 로 입력합니다.",
     "guide.ios4": "저장 후 설정 → 앱 → 메일 → 계정에서 발신 서버 포트가 {smtp}, SSL 사용이 켜져 있는지 확인합니다.",
     "appPassword.title": "메일 클라이언트",
-    "appPassword.help": "Thunderbird·Apple Mail 같은 메일 프로그램에서 이 계정을 쓰려면 기기마다 비밀번호를 따로 만드세요.\n하나라도 만들면 labMail 로그인 비밀번호로는 메일 프로그램에 연결할 수 없게 됩니다.\n기기를 잃어버렸을 때 그 하나만 폐기하면 되고, 로그인 비밀번호는 바꾸지 않아도 됩니다.",
+    "appPassword.help": "Thunderbird·Apple Mail 같은 메일 프로그램에서 이 계정을 쓰려면 기기마다 비밀번호를 따로 만드세요.\n하나라도 만들면 LabMail 로그인 비밀번호로는 메일 프로그램에 연결할 수 없게 됩니다.\n기기를 잃어버렸을 때 그 하나만 폐기하면 되고, 로그인 비밀번호는 바꾸지 않아도 됩니다.",
     "appPassword.label": "이름",
     "appPassword.created": "만든 날짜",
     "appPassword.lastUsed": "마지막 사용",
@@ -1453,17 +1462,17 @@ const STRINGS = {
     "list.prevPage": "이전 페이지",
     "list.nextPage": "다음 페이지",
     "list.emptyTrash": "휴지통 비우기",
-    "list.emptyTrashConfirm": "휴지통의 메일을 labMail에서 모두 지울까요?",
+    "list.emptyTrashConfirm": "휴지통의 메일을 LabMail에서 모두 지울까요?",
     "toast.trashEmptied": "휴지통에서 {n}통을 지웠습니다",
     "dialog.confirm": "확인",
     "dialog.cancel": "취소",
     "dialog.close": "닫기",
-    "list.remove": "labMail에서 지우기",
-    "list.removeConfirm": "선택한 {n}통을 labMail에서 지울까요?",
-    "reader.removeTitle": "labMail에서 지우기",
-    "reader.removeConfirm": "이 메일을 labMail에서 지울까요?",
-    "toast.removed": "labMail에서 지웠습니다",
-    "toast.bulkRemoved": "{n}통을 labMail에서 지웠습니다",
+    "list.remove": "LabMail에서 지우기",
+    "list.removeConfirm": "선택한 {n}통을 LabMail에서 지울까요?",
+    "reader.removeTitle": "LabMail에서 지우기",
+    "reader.removeConfirm": "이 메일을 LabMail에서 지울까요?",
+    "toast.removed": "LabMail에서 지웠습니다",
+    "toast.bulkRemoved": "{n}통을 LabMail에서 지웠습니다",
     "list.restore": "복원",
     "toast.bulkRestored": "{n}통을 복원했습니다",
     "nav.unassigned": "미분류 메일",
@@ -1692,7 +1701,7 @@ const STRINGS = {
     "setup.sendAsD1": "새 구성원을 승인하면 그 주소로 메일은 바로 받을 수 있습니다.",
     "setup.sendAsD2": "발신은 자동으로 열리지 않습니다.\n공용 계정({shared})의 Gmail 설정 › 계정 › \"다른 이메일 주소 추가\"에서 그 주소를 직접 추가해야 합니다.",
     "setup.sendAsD3": "추가하기 전까지 그 구성원은 메일 보내기 · 답장 · 전체답장 · 전달을 할 수 없습니다.\n읽기는 정상입니다.",
-    "setup.sendAsD4": "추가하면 1분 안에 labMail이 알아채고 자동으로 열립니다.\n여기서 따로 할 일은 없습니다.",
+    "setup.sendAsD4": "추가하면 1분 안에 LabMail이 알아채고 자동으로 열립니다.\n여기서 따로 할 일은 없습니다.",
     "setup.sendAsOpen": "공용 계정 발신 주소 설정 열기",
     "setup.s1": "Cloud 프로젝트와 OAuth 클라이언트 만들기",
     "setup.s1help": "프로젝트를 먼저 만들고, 그 안에서 클라이언트를 만듭니다.\n유형은 반드시 \"웹 애플리케이션\"이고, 아래 리디렉션 URI를 그대로 등록해야 합니다.",
@@ -1849,6 +1858,9 @@ const STRINGS = {
     "drive.tooBigForMail": "Over 25MB, so it was uploaded to Drive and attached as a link",
     "drive.modified": "Modified {when}",
     "profile.nameSaved": "Display name saved",
+    "install.title": "Install as an app",
+    "install.done": "LabMail is installed.",
+    "install.appleSteps": "In Safari, install it this way.\n\n1. Press the share button.\n2. Choose \"Add to Home Screen\".\n3. Press \"Add\" at the top right.",
     "theme.toggle": "Appearance",
     "theme.system": "Match system",
     "theme.light": "Light",
@@ -1944,7 +1956,7 @@ const STRINGS = {
     "live.open": "Open Inbox",
     "nav.categories": "Categories",
     "guide.title": "Setting up a mail program",
-    "guide.help": "These values are the same in every program.\nUse an app password from above, not your labMail sign-in password.",
+    "guide.help": "These values are the same in every program.\nUse an app password from above, not your LabMail sign-in password.",
     "guide.noHost": "An operator has not set the mail server address yet.\nOnce it is set in system settings, the instructions appear here.",
     "guide.address": "Mail address",
     "guide.username": "User name",
@@ -1975,7 +1987,7 @@ const STRINGS = {
     "guide.ios3": "On the IMAP tab, set both host names to {host} and both user names to {address}.",
     "guide.ios4": "After saving, check under Settings → Apps → Mail → Accounts that the outgoing port is {smtp} with SSL on.",
     "appPassword.title": "Mail clients",
-    "appPassword.help": "To use this account in a mail program such as Thunderbird or Apple Mail, create a password for each device.\nOnce you have created one, your labMail sign-in password no longer works in mail programs.\nLosing a device then costs that one entry, and your sign-in password stays as it is.",
+    "appPassword.help": "To use this account in a mail program such as Thunderbird or Apple Mail, create a password for each device.\nOnce you have created one, your LabMail sign-in password no longer works in mail programs.\nLosing a device then costs that one entry, and your sign-in password stays as it is.",
     "appPassword.label": "Name",
     "appPassword.created": "Created",
     "appPassword.lastUsed": "Last used",
@@ -2034,17 +2046,17 @@ const STRINGS = {
     "list.prevPage": "Previous page",
     "list.nextPage": "Next page",
     "list.emptyTrash": "Empty Trash",
-    "list.emptyTrashConfirm": "Remove everything in the Trash from labMail?",
+    "list.emptyTrashConfirm": "Remove everything in the Trash from LabMail?",
     "toast.trashEmptied": "{n} removed from the Trash",
     "dialog.confirm": "OK",
     "dialog.cancel": "Cancel",
     "dialog.close": "Close",
-    "list.remove": "Remove from labMail",
-    "list.removeConfirm": "Remove {n} selected message(s) from labMail?",
-    "reader.removeTitle": "Remove from labMail",
-    "reader.removeConfirm": "Remove this message from labMail?",
-    "toast.removed": "Removed from labMail",
-    "toast.bulkRemoved": "{n} removed from labMail",
+    "list.remove": "Remove from LabMail",
+    "list.removeConfirm": "Remove {n} selected message(s) from LabMail?",
+    "reader.removeTitle": "Remove from LabMail",
+    "reader.removeConfirm": "Remove this message from LabMail?",
+    "toast.removed": "Removed from LabMail",
+    "toast.bulkRemoved": "{n} removed from LabMail",
     "list.restore": "Restore",
     "toast.bulkRestored": "{n} restored",
     "nav.unassigned": "Unassigned",
@@ -2273,7 +2285,7 @@ const STRINGS = {
     "setup.sendAsD1": "A newly approved member receives mail at their address straight away.",
     "setup.sendAsD2": "Sending does not open by itself.\nAdd the address under the shared account ({shared}) at Gmail settings › Accounts › \"Add another email address\".",
     "setup.sendAsD3": "Until then that member cannot compose, reply, reply-all or forward.\nReading is unaffected.",
-    "setup.sendAsD4": "Once added, labMail notices within a minute and opens sending on its own.\nNothing to do here.",
+    "setup.sendAsD4": "Once added, LabMail notices within a minute and opens sending on its own.\nNothing to do here.",
     "setup.sendAsOpen": "Open send-address settings",
     "setup.s1": "Create the Cloud project and OAuth client",
     "setup.s1help": "Create the project first, then the client inside it.\nThe type must be \"Web application\", and the redirect URI below has to be registered on it verbatim.",
@@ -2327,7 +2339,7 @@ const STRINGS = {
     "setup.s3d4": "The secret is never displayed again once saved.\nLeaving it blank keeps the stored value, so editing other fields cannot disconnect a working integration.",
 
     "setup.s4h1": "The \"Connect Google account\" button on card 3",
-    "setup.s4d1": "Sign in as the shared account on the consent screen.\nSigning in as yourself connects labMail to your own mailbox.",
+    "setup.s4d1": "Sign in as the shared account on the consent screen.\nSigning in as yourself connects LabMail to your own mailbox.",
     "setup.s4d2": "Scopes requested: read and modify mail, send-as settings, group and user-alias management, and Drive files the app creates.",
     "setup.s4d3": "The single token stored here is what every mail access runs through.\nMembers never hold Google credentials.",
 
@@ -2486,6 +2498,72 @@ function rerenderAll() {
 }
 
 const localeTag = () => BCP47[LOCALE] || 'en-US'
+
+// ══ Install ════════════════════════════════════════════════════════════════
+/**
+ * Offer to install the app, where the browser will have it.
+ *
+ * Chrome and Edge hand over a prompt through `beforeinstallprompt`. Safari
+ * never does, so on an Apple device the button explains the steps instead --
+ * the alternative is a button that silently does nothing, or no button at all
+ * on the platform where installing is least discoverable.
+ *
+ * Hidden once the app is already running installed.
+ */
+let installPrompt = null
+
+const installButtons = () => [$('btn-install'), $('btn-install2')].filter(Boolean)
+
+const isStandalone = () =>
+  window.matchMedia?.('(display-mode: standalone)').matches || window.navigator.standalone === true
+
+/** Safari on iPhone and iPad, where the prompt event does not exist. */
+const isAppleMobile = () =>
+  /iphone|ipad|ipod/i.test(navigator.userAgent) ||
+  (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)
+
+function paintInstall() {
+  const offer = !isStandalone() && (installPrompt !== null || isAppleMobile())
+  for (const button of installButtons()) button.classList.toggle('hidden', !offer)
+}
+
+window.addEventListener('beforeinstallprompt', (e) => {
+  // Held rather than shown at once: the browser's own bar interrupts, and the
+  // button puts the choice where the other tools are.
+  e.preventDefault()
+  installPrompt = e
+  paintInstall()
+})
+
+window.addEventListener('appinstalled', () => {
+  installPrompt = null
+  paintInstall()
+  toast(t('install.done'))
+})
+
+async function offerInstall() {
+  if (installPrompt) {
+    installPrompt.prompt()
+    const { outcome } = await installPrompt.userChoice
+    // One prompt per event; the browser sends another if it still applies.
+    installPrompt = null
+    paintInstall()
+    if (outcome === 'accepted') toast(t('install.done'))
+    return
+  }
+  await showAlert(t('install.appleSteps'))
+}
+
+for (const button of installButtons()) button.onclick = () => { void offerInstall() }
+paintInstall()
+
+// Registered after load so it never delays the first paint. It caches
+// nothing; it exists so the browser will offer to install at all.
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').catch(() => { /* not installable, no matter */ })
+  })
+}
 
 // ══ Appearance ══════════════════════════════════════════════════════════════
 const THEME_KEY = 'labmail:theme'
@@ -3057,7 +3135,7 @@ function paintCounts() {
     badge.classList.toggle('hidden', value === 0)
   })
   const unread = S.counts.unread ?? 0
-  document.title = unread > 0 ? `labMail (${unread})` : 'labMail'
+  document.title = unread > 0 ? `LabMail (${unread})` : 'LabMail'
 }
 
 // ══ Selection ═══════════════════════════════════════════════════════════
@@ -4376,7 +4454,7 @@ window.addEventListener('popstate', () => { void applyPath() })
 /**
  * The member's own categories, in the sidebar and on messages.
  *
- * They are labMail's, not Gmail's: one mailbox serves everyone, so a Gmail
+ * They are LabMail's, not Gmail's: one mailbox serves everyone, so a Gmail
  * label would be shared. These are scoped to the signed-in alias throughout.
  */
 async function loadCategories() {
@@ -5903,7 +5981,7 @@ function renderSetupGuide(data, cfg) {
 
   body.appendChild(list)
 
-  // Sending is the one thing labMail cannot provision, so the operator has to
+  // Sending is the one thing LabMail cannot provision, so the operator has to
   // be told plainly and repeatedly -- once per member, forever.
   const box = el('div', 'callout')
   const title = el('div', 'callout-t')
@@ -6502,7 +6580,7 @@ async function refreshCounts() {
 function notifyDesktop(text) {
   if (typeof Notification === 'undefined' || Notification.permission !== 'granted') return
   try {
-    const n = new Notification('labMail', { body: text, tag: 'labmail-new-mail', renotify: false })
+    const n = new Notification('LabMail', { body: text, tag: 'labmail-new-mail', renotify: false })
     n.onclick = () => { window.focus(); selectMailbox('inbox') }
   } catch { /* some browsers refuse outside a service worker; the toast still shows */ }
 }

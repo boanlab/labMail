@@ -1,16 +1,16 @@
 # Mail clients
 
-labMail speaks SMTP submission and IMAP, so a member can use Thunderbird,
+LabMail speaks SMTP submission and IMAP, so a member can use Thunderbird,
 Apple Mail, Outlook or a phone with the address and password they already have.
 Both protocols sit in front of the same per-member view the web interface reads,
 so a flag set in a client means the same thing in a browser, and a message sent
 from either goes out the same way.
 
 ```
-  mail client ──993/465, TLS──▶ nginx ──PROXY, plaintext──▶ labMail ──▶ Gmail
+  mail client ──993/465, TLS──▶ nginx ──PROXY, plaintext──▶ LabMail ──▶ Gmail
 ```
 
-## What labMail listens on
+## What LabMail listens on
 
 Plaintext, and never on a public interface. TLS belongs to whatever publishes
 993 and 465.
@@ -133,8 +133,8 @@ EOF
 Expected:
 
 ```
-993 * OK [CAPABILITY IMAP4rev1 AUTH=PLAIN SPECIAL-USE IDLE UIDPLUS MOVE] labMail ready
-465 220 labMail submission
+993 * OK [CAPABILITY IMAP4rev1 AUTH=PLAIN SPECIAL-USE IDLE UIDPLUS MOVE] LabMail ready
+465 220 LabMail submission
 ```
 
 `openssl s_client` works too, but its buffering hides a greeting that did

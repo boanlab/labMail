@@ -17,16 +17,16 @@ receives fixes.
 
 ## Threat model
 
-### What labMail is
+### What LabMail is
 
 One Google Workspace mailbox, presented to several people as if each had their
-own. Members authenticate to labMail — never to Google — and see only the mail
+own. Members authenticate to LabMail — never to Google — and see only the mail
 attributed to their alias.
 
 ### Isolation is enforced in application code
 
 The Google account holds one undifferentiated mailbox. Separation between
-members exists only because labMail's queries enforce it:
+members exists only because LabMail's queries enforce it:
 
 - Every read joins `message_owners` on the session alias. There is no second
   filter and no default scope.
@@ -40,7 +40,7 @@ A missing join is not a display bug: it exposes the whole mailbox.
 
 Organizations requiring genuine per-user isolation — for regulatory reasons, or
 because members are not mutually trusted — should provision real accounts.
-labMail suits a mailbox with a legitimate reason to be shared.
+LabMail suits a mailbox with a legitimate reason to be shared.
 
 ### The shared account password must never be distributed
 
@@ -74,11 +74,11 @@ server pass is the control.
 
 HTML message bodies are rendered in an iframe with an empty `sandbox` attribute:
 no scripts, no forms, no top-level navigation, and a null origin, so a message
-cannot reach labMail's cookies or DOM.
+cannot reach LabMail's cookies or DOM.
 
 ### OAuth scopes
 
-labMail requests `gmail.modify` rather than full mail access, so a bug cannot
+LabMail requests `gmail.modify` rather than full mail access, so a bug cannot
 permanently delete mail — deletions move messages to Trash, where they remain
 recoverable. It also requests `gmail.settings.sharing` and
 `gmail.settings.basic` to register send-as aliases, and
