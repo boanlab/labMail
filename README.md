@@ -3,16 +3,30 @@
 [![CI](https://github.com/boanlab/labMail/actions/workflows/ci.yml/badge.svg)](https://github.com/boanlab/labMail/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-**One Google Workspace mailbox, presented as separate inboxes.**
+**One Google Workspace mailbox, split into separate inboxes by purpose.**
 
-A shared mailbox collects everything a team receives in one place, which keeps
-correspondence continuous as people join and leave but gives no one their own
-view of it. Gmail offers no way to partition a single mailbox per person.
+A shared mailbox collects everything an organization receives in one place,
+which keeps correspondence continuous as people come and go but leaves every
+purpose piled together: support, enquiries, notices, applications. Gmail offers
+no way to partition a single mailbox.
 
-LabMail is that partition. It sits in front of one Workspace account: members
-sign in to LabMail, see only the mail addressed to their own alias, and send as
-themselves. Receiving, sending, and storage all stay with Gmail; there is no
-separate mail server, no forwarding service, and no outbound relay to run.
+LabMail is that partition. It sits in front of one Workspace account. Each
+address — `support@`, `contact@`, `admin@` — gets its own inbox, its own read
+and archive state, its own rules, and sends under its own name. Receiving,
+sending and storage all stay with Gmail; there is no separate mail server, no
+forwarding service, and no outbound relay to run.
+
+### What it is for
+
+Separating one mailbox by **purpose**, so a person working the support queue is
+not reading through enquiries and automated notices to find it.
+
+It is not a way to give people mailboxes without accounts. Google Workspace is
+licensed per person, not per address, and an address is not a licence: aliases
+and groups are exactly what Google provides for role addresses. Whoever signs
+in to LabMail should be someone your organization already licenses. Where each
+person needs their own mail, give them their own Workspace account — that is
+what accounts are for, and it is the only arrangement with real isolation.
 
 > **Read [the security model](docs/security-model.md) before deploying.**
 > Separation between members is enforced by this application's queries, not by
@@ -150,6 +164,7 @@ domain usually will not grant these settings.
 | **Storage is shared** | So is the Gmail API rate limit. |
 | **Isolation is application-level** | A missing query join exposes the whole mailbox. See the [security model](docs/security-model.md). |
 | **The shared password must never be shared** | Anyone who signs in to Gmail directly sees everyone's mail. No code prevents this. |
+| **An address is not a licence** | Workspace is licensed per person. Splitting a mailbox by purpose does not change how many people use it, and everyone who signs in is one of them. |
 | **Sending needs one manual step per member** | The API that registers a send address is restricted to service accounts with domain-wide authority, so an operator adds each member's once. LabMail refuses to send until it exists, rather than letting mail go out under the shared account's name. |
 | **Deletion is per member** | Permanent deletion needs a Gmail scope this application does not request. Removing a message hides it from that member; Gmail empties its own Trash on schedule. |
 | **One container, no redundancy** | SQLite on one volume, sync in-process. A restart pauses sync until it comes back. |

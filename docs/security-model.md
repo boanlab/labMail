@@ -121,6 +121,20 @@ stored server-side and resolved on every request. Deactivating an account
 invalidates its sessions immediately, because the lookup joins on account
 status rather than trusting the cookie alone.
 
+## What a member is
+
+A member is an address with a purpose — `support@`, `contact@`, `admin@` — and
+a sign-in that reaches only the mail for it. Several can belong to one person;
+that is the ordinary case, and the reason the split exists is to keep one queue
+out of another rather than one person out of another's mail.
+
+It is not a substitute for a Workspace account. Everyone who signs in is using
+the Workspace service through the shared account, whatever the address is
+called, and Workspace is licensed per person. The isolation here is also a
+presentation layer rather than a boundary, as the rest of this document
+explains, so an arrangement that needs one person kept out of another's mail
+needs separate accounts.
+
 ## Signup and approval
 
 Signup records the requested address and creates a pending account. The whole
