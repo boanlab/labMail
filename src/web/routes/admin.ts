@@ -2,7 +2,7 @@ import { db, listUnassigned, activeAliases } from '../../db/index.ts'
 import { approve, deactivate, reject, listUsers, assignMessage, reconcileSendAs } from '../../core/users.ts'
 import { validateLocalPart } from '../../core/auth.ts'
 import {
-  publicSettings, setSettings, syncIntervalSeconds, orgDomain, isGoogleConnected,
+  publicSettings, setSettings, syncIntervalSeconds, orgDomain, orgDomains, isGoogleConnected,
   SETTING_KEYS, type SettingKey,
 } from '../../core/settings.ts'
 import { t } from '../../core/i18n.ts'
@@ -133,7 +133,12 @@ export function registerAdminRoutes(router: Router): void {
       if (typeof value === 'string' && value.trim()) updates[key] = value
     }
     if (updates.org_domain) {
-      updates.org_domain = updates.org_domain.trim().toLowerCase().replace(/^@/, '')
+      updates.org_domain = updates.org_domain
+        .toLowerCase()
+        .split(/[\s,]+/)
+        .map((d) => d.trim().replace(/^@/, ''))
+        .filter(Boolean)
+        .join(', ')
     }
     setSettings(updates)
     // Keys only. Values include the OAuth secret, which must not be copied here.
@@ -154,7 +159,9 @@ export function registerAdminRoutes(router: Router): void {
     const invalid = validateLocalPart(localPart)
     if (invalid) throw new HttpError(400, invalid)
 
-    const alias = `${localPart}@${orgDomain()}`
+    const domain = (str(body, 'domain') || orgDomain()).trim().toLowerCase()
+    if (!orgDomains().includes(domain)) throw new HttpError(400, 'signup.unknownDomain')
+    const alias = `${localPart}@${domain}`
     const taken = db.prepare(`SELECT 1 FROM users WHERE alias_email = ? AND id != ?`)
       .get(alias, admin.id)
     if (taken) throw new HttpError(400, 'address.taken')
@@ -173,7 +180,10 @@ export function registerAdminRoutes(router: Router): void {
       }
     }
 
-    db.prepare(`UPDATE users SET alias_email = ? WHERE id = ?`).run(alias, admin.id)
+    // The sign-in name follows the address, so it does not stay a bare local
+    // part until the next restart notices.
+    db.prepare(`UPDATE users SET alias_email = ?, alias_domain = ?, username = ? WHERE id = ?`)
+      .run(alias, domain, alias, admin.id)
     audit({
       actor: admin.alias ?? admin.username, actorId: admin.id,
       action: 'account.alias', target: alias, ip: clientAddress(req),

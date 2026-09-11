@@ -130,6 +130,12 @@ setting 2 is missing or does not cover that account type.
 Adding Drive later means the stored token lacks the new scope: reconnect from
 system settings to consent again.
 
+### Each domain separately
+
+The three settings above are per domain. A secondary domain carrying member
+addresses needs its own default routing rule, its own `X-Gm-Original-To` rule
+and its own DKIM key, or mail for it arrives unattributed — or not at all.
+
 ## Adding members
 
 Members sign up through the web UI. Signup records only the requested local

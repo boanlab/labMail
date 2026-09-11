@@ -84,6 +84,8 @@ See [the security model](docs/security-model.md) for the reasoning.
   system and persists per browser
 - **Mail clients** — SMTP submission and IMAP in front of the same per-member
   view, so Thunderbird, Apple Mail or a phone works with per-device passwords
+- **More than one domain** — addresses may be issued under a Workspace's
+  secondary domains, and the same local part is free under each
 - **Single container** — sync runs in-process; SQLite on one volume
 
 
@@ -181,7 +183,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for what that implies.
 
 Running against a live Google Workspace account. Sync, sending, provisioning,
 attachments, Drive links, the OAuth flow and both mail protocols have all been
-exercised with real credentials and a real mail client, alongside 246 unit
+exercised with real credentials and a real mail client, alongside 250 unit
 tests covering ownership resolution, per-member state, alias isolation, the
 rule engine, sign-in throttling, MIME assembly, HTML sanitisation, route
 authorisation, and the SMTP and IMAP surfaces.

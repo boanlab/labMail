@@ -123,9 +123,10 @@ status rather than trusting the cookie alone.
 
 ## Signup and approval
 
-Signup records only the requested local part and creates a pending account. It
-never reveals whether the deployment has been configured — that check happens at
-approval, where the admin sees it.
+Signup records the requested address and creates a pending account. The whole
+address is the sign-in name, since the same local part under two domains is two
+different people. It never reveals whether the deployment has been configured —
+that check happens at approval, where the admin sees it.
 
 Approval composes the address and creates the Group that delivers to it before
 activating the account, so a member never holds an address that does not yet

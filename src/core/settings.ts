@@ -1,5 +1,6 @@
 import { db } from '../db/index.ts'
 import { DEFAULT_LOCALE, t } from './i18n.ts'
+import { UserError } from './errors.ts'
 
 /**
  * Runtime configuration, stored in the database.
@@ -83,8 +84,32 @@ export function setSettings(values: Partial<Record<SettingKey, string>>): void {
   for (const fn of listeners) fn()
 }
 
+/**
+ * Every domain member addresses may be issued under, the first being the
+ * default a form offers.
+ *
+ * Empty until an operator configures one. Signup still works in that state --
+ * it must not reveal whether the deployment is set up -- and approval is where
+ * the absence is refused.
+ */
+export function orgDomains(): string[] {
+  return (getSetting('org_domain') ?? '')
+    .toLowerCase()
+    .split(/[\s,]+/)
+    .map((d) => d.trim().replace(/^@/, ''))
+    .filter(Boolean)
+}
+
+/** The default domain: the first configured. */
 export function orgDomain(): string {
-  return requireSetting('org_domain').toLowerCase()
+  const [first] = orgDomains()
+  if (!first) throw new UserError('setup.noDomain')
+  return first
+}
+
+/** Whether an address belongs to a domain this deployment issues. */
+export function isOrgDomain(domain: string): boolean {
+  return orgDomains().includes(domain.trim().toLowerCase())
 }
 
 export function sharedAccountEmail(): string {

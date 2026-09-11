@@ -46,7 +46,7 @@ Changes take effect immediately; no restart is needed.
 
 | Setting | Purpose |
 |---|---|
-| Organization domain | Domain member addresses are built from, without `@`. |
+| Organization domain | Domains member addresses are built from, without `@`. Several are separated by commas; the first is the default. |
 | Shared account address | The Workspace account all mail actually lands in. |
 | OAuth client ID | From Google Cloud Console, type **Web application**. |
 | OAuth client secret | Write-only. Blank leaves the stored value untouched. |
@@ -73,6 +73,23 @@ would see the shared mailbox instead of the member. The composer, reply,
 reply-all and forward are withheld, both routes that put mail on the wire
 return 409, and the sync tick re-checks so the member's ability to send
 returns on its own within a minute of the entry appearing.
+
+### More than one domain
+
+A Workspace can carry secondary domains, and member addresses may be issued
+under any of them. List them in the organization domain setting:
+
+```
+example.com, second.example
+```
+
+The signup form then asks which one, and the same local part is free under each
+— `hong@example.com` and `hong@second.example` are different people. A member's
+sign-in name is their whole address for that reason.
+
+Every domain needs its own routing rules and DKIM in the Admin console. Mail
+arriving for a domain that has neither lands in the unassigned queue, or does
+not arrive at all. See [deployment.md](deployment.md).
 
 ### Secrets are write-only
 
@@ -131,8 +148,8 @@ copy it from there into Cloud Console rather than composing it by hand.
 | `npm run sync -- --full` | Full backfill |
 | `npm run sync -- --watch` | Standalone sync loop |
 | `npm run provision -- <alias>` | Create or repair an address |
-| `npm run admin -- <username>` | Promote an existing account to admin |
-| `npm run seed:demo -- <username>` | Insert sample mail for interface work |
+| `npm run admin -- <address>` | Promote an existing account to admin |
+| `npm run seed:demo -- <address>` | Insert sample mail for interface work |
 | `npm run seed:demo -- --clear` | Remove seeded sample mail |
 
 `seed:demo` refuses to run while Google is connected, so it cannot mix

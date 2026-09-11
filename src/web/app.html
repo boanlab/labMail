@@ -891,6 +891,7 @@ kbd { font-family: var(--font); font-size: 11px; font-weight: 600; min-width: 20
           <input id="su-local" placeholder="hong" autocomplete="username"
                  autocapitalize="off" spellcheck="false" required>
           <span class="suffix" id="su-suffix"></span>
+          <select id="su-domain" class="hidden" aria-label="domain"></select>
         </div>
         <div class="help" id="su-local-msg"></div>
       </div>
@@ -1788,7 +1789,7 @@ const STRINGS = {
     "settings.copy": "복사",
     "settings.section": "3 · 연동 정보",
     "settings.orgDomain": "조직 도메인",
-    "settings.orgDomainHelp": "구성원 주소가 만들어질 도메인. @ 없이 입력합니다.",
+    "settings.orgDomainHelp": "구성원 주소가 만들어질 도메인입니다. @ 없이 입력하세요.\n보조 도메인이 있으면 쉼표로 구분해 나열합니다. 첫 번째가 기본값이 됩니다.\n도메인마다 Admin 콘솔에서 라우팅과 DKIM을 따로 설정해야 합니다.",
     "settings.sharedAccount": "공용 계정 주소",
     "settings.sharedAccountHelp": "모든 메일이 실제로 쌓이는 Workspace 계정.",
     "settings.clientId": "OAuth 클라이언트 ID",
@@ -2369,7 +2370,7 @@ const STRINGS = {
     "settings.copy": "Copy",
     "settings.section": "3 · Integration",
     "settings.orgDomain": "Organization domain",
-    "settings.orgDomainHelp": "Domain member addresses are built from.\nEnter it without the @.",
+    "settings.orgDomainHelp": "Domains member addresses are built from, without the @.\nList secondary domains separated by commas; the first is the default.\nEach needs its own routing and DKIM in the Admin console.",
     "settings.sharedAccount": "Shared account address",
     "settings.sharedAccountHelp": "The Workspace account all mail actually lands in.",
     "settings.clientId": "OAuth client ID",
@@ -5417,7 +5418,10 @@ async function renderMembers() {
     tr.appendChild(nameCell)
 
     const addrCell = el('td', 'mono')
-    addrCell.textContent = u.alias_email || (u.alias_local ? `${u.alias_local}@…` : '—')
+    const requested = u.alias_local
+      ? `${u.alias_local}@${u.alias_domain ?? '…'}`
+      : '—'
+    addrCell.textContent = u.alias_email || requested
     if (!u.alias_email && u.alias_local) addrCell.style.color = 'var(--text-3)'
     tr.appendChild(addrCell)
 
@@ -5954,7 +5958,7 @@ async function renderSettings() {
   const fields = el('div', 'grid-fields')
 
   const SPEC = [
-    { key: 'org_domain', label: 'settings.orgDomain', placeholder: 'example.com',
+    { key: 'org_domain', label: 'settings.orgDomain', placeholder: 'example.com, second.example',
       help: 'settings.orgDomainHelp' },
     { key: 'shared_account_email', label: 'settings.sharedAccount', placeholder: 'shared@example.com',
       help: 'settings.sharedAccountHelp' },
@@ -6075,19 +6079,36 @@ async function renderSettings() {
     row.style.cssText = 'display:flex;gap:8px;align-items:center;margin-top:10px;max-width:420px'
     const local = el('input')
     local.placeholder = 'admin'
-    local.value = current.split('@')[0] || ''
-    const suffix = el('span', 'help', `@${cfg.org_domain}`)
-    suffix.style.whiteSpace = 'nowrap'
+    local.value = current.split('@')[0] || S.me.username.split('@')[0] || ''
+    const domains = (cfg.org_domain || '').split(/[\s,]+/).filter(Boolean)
+    // One domain reads as a suffix; several are a choice, since the operator
+    // address can sit under a secondary domain like anyone else's.
+    let suffix
+    if (domains.length > 1) {
+      suffix = el('select')
+      suffix.style.maxWidth = '200px'
+      for (const domain of domains) {
+        const option = el('option', null, `@${domain}`)
+        option.value = domain
+        if (current.endsWith(`@${domain}`)) option.selected = true
+        suffix.appendChild(option)
+      }
+    } else {
+      suffix = el('span', 'help', `@${domains[0] ?? ''}`)
+      suffix.style.whiteSpace = 'nowrap'
+    }
+    const chosenDomain = () => (suffix.value ?? domains[0] ?? '')
     const setBtn = el('button', 'primary', t(current ? 'settings.change' : 'settings.assign'))
     setBtn.onclick = async () => {
-      const next = `${local.value.trim().toLowerCase()}@${cfg.org_domain}`
+      const next = `${local.value.trim().toLowerCase()}@${chosenDomain()}`
       if (next === current) { notice(msg, t('settings.addressUnchanged'), 'warn'); return }
       if (current && !await askConfirm(t('settings.changeAddressConfirm', { from: current, to: next }))) return
       notice(msg, '')
       await withBusy(setBtn, t('settings.provisioning'), async () => {
       try {
         const r = await api('/api/admin/self-alias', {
-          method: 'POST', body: JSON.stringify({ localPart: local.value }),
+          method: 'POST',
+          body: JSON.stringify({ localPart: local.value, domain: chosenDomain() }),
         })
         S.me.alias = r.alias
         $('me-mail').textContent = r.alias
@@ -6154,7 +6175,9 @@ function checkAddressAvailability() {
 
   addressCheckTimer = setTimeout(async () => {
     try {
-      const r = await api(`/api/signup/available?localPart=${encodeURIComponent(value)}`)
+      const domain = $('su-domain').value
+      const r = await api(`/api/signup/available?localPart=${encodeURIComponent(value)}`
+        + (domain ? `&domain=${encodeURIComponent(domain)}` : ''))
       if ($('su-local').value.trim().toLowerCase() !== value) return
       msg.textContent = r.available ? t('auth.available') : r.reason
       msg.className = r.available ? 'help field-ok' : 'help field-bad'
@@ -6196,6 +6219,7 @@ $('form-signup').onsubmit = async (e) => {
       body: JSON.stringify({
         displayName: $('su-name').value,
         localPart: $('su-local').value,
+        domain: $('su-domain').value || undefined,
         password: $('su-pass').value,
       }),
     })
@@ -6561,8 +6585,24 @@ async function enterApp() {
   try {
     const cfg = await api('/api/config')
     // Suffix shown only when the domain is known.
-    if (cfg.orgDomain) $('su-suffix').textContent = `@${cfg.orgDomain}`
-    else $('su-suffix').classList.add('hidden')
+    const domains = cfg.orgDomains ?? []
+    // A single domain is a suffix, not a decision. More than one has to be
+    // asked, because the same local part is a different person under each.
+    if (domains.length === 1) {
+      $('su-suffix').textContent = `@${domains[0]}`
+    } else if (domains.length > 1) {
+      $('su-suffix').classList.add('hidden')
+      const select = $('su-domain')
+      select.classList.remove('hidden')
+      for (const domain of domains) {
+        const option = el('option', null, `@${domain}`)
+        option.value = domain
+        select.appendChild(option)
+      }
+      select.onchange = () => checkAddressAvailability()
+    } else {
+      $('su-suffix').classList.add('hidden')
+    }
   } catch { $('su-suffix').classList.add('hidden') }
 
   try {

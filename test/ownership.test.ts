@@ -6,7 +6,7 @@ import { canonicalize, formatAddress, parseAddressList } from '../src/google/add
 const ctx = {
   knownAliases: new Set(['hong@example.com', 'kim@example.com', 'old@example.com']),
   sharedAccountEmail: 'shared@example.com',
-  orgDomain: 'example.com',
+  orgDomains: ['example.com'],
 }
 
 const h = (o: Record<string, string | string[]>): Headers =>
@@ -263,4 +263,25 @@ test('ordinary mail to a member is untouched by the confirmation rule', () => {
     labels: ['INBOX'],
   }, { ...ctx, adminAliases: ['boan@example.com'] })
   assert.deepEqual(owners.map((o) => o.alias), ['hong@example.com'])
+})
+
+test('a second domain is recognised alongside the first', () => {
+  // Secondary domains issue different addresses, not aliases of the first, so
+  // both have to be accepted as places a member's mail can arrive.
+  const ctx2 = {
+    ...ctx,
+    orgDomains: ['example.com', 'second.example'],
+    knownAliases: new Set([...ctx.knownAliases, 'hong@second.example']),
+  }
+  const owners = resolveOwners({
+    headers: { to: ['hong@second.example'] }, labels: ['INBOX'],
+  }, ctx2)
+  assert.deepEqual(owners.map((o) => o.alias), ['hong@second.example'])
+})
+
+test('a domain the deployment does not issue is still an outside party', () => {
+  const owners = resolveOwners({
+    headers: { to: ['hong@elsewhere.test'] }, labels: ['INBOX'],
+  }, { ...ctx, knownAliases: new Set([...ctx.knownAliases, 'hong@elsewhere.test']) })
+  assert.deepEqual(owners, [])
 })

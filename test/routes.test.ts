@@ -323,7 +323,7 @@ test('starting OAuth without stored credentials is refused', async () => {
 test('the public config never leaks configuration state', async () => {
   const res = await call('/api/config')
   assert.equal(res.status, 200)
-  assert.deepEqual(Object.keys(res.body).sort(), ['locale', 'locales', 'orgDomain'])
+  assert.deepEqual(Object.keys(res.body).sort(), ['locale', 'locales', 'orgDomains'])
 })
 
 test('settings never return secret values', async () => {

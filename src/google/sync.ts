@@ -1,5 +1,5 @@
 import type { gmail_v1 } from 'googleapis'
-import { orgDomain, sharedAccountEmail } from '../core/settings.ts'
+import { orgDomains, sharedAccountEmail } from '../core/settings.ts'
 import { db, allKnownAliases, seedMessageState, type MessageRow, adminAliases } from '../db/index.ts'
 import { emitNewMail } from '../core/events.ts'
 import { applyRules } from '../core/rules.ts'
@@ -53,7 +53,7 @@ export function ownershipContext() {
     knownAliases: new Set(allKnownAliases()),
     sharedAccountEmail: sharedAccountEmail(),
     adminAliases: adminAliases(),
-    orgDomain: orgDomain(),
+    orgDomains: orgDomains(),
   }
 }
 

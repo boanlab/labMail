@@ -37,6 +37,8 @@ export const CATALOG = {
     'signup.passwordLength': '비밀번호는 10자 이상이어야 합니다.',
     'signup.displayNameRequired': '이름을 입력하세요.',
     'signup.taken': '이미 사용 중인 주소입니다.',
+    'signup.unknownDomain':
+      '요청한 도메인을 쓸 수 없습니다.\n관리자에게 문의하세요.',
     'signup.sharedAccount':
       '공용 계정과 같은 주소는 쓸 수 없습니다.\n그 주소로는 메일을 받을 수 없습니다.',
     'signup.passwordMismatch': '새 비밀번호가 서로 일치하지 않습니다.',
@@ -133,6 +135,8 @@ export const CATALOG = {
     'signup.passwordLength': 'Password must be at least 10 characters.',
     'signup.displayNameRequired': 'Display name is required.',
     'signup.taken': 'That address is already taken.',
+    'signup.unknownDomain':
+      'That domain is not available.\nAsk an operator.',
     'signup.sharedAccount': 'The shared account address cannot be reused — mail sent to it is never attributed to anyone.',
     'signup.passwordMismatch': 'The two new passwords do not match.',
 

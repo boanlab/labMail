@@ -369,16 +369,54 @@ test('an account without a mailbox never appears as an alias owner', () => {
   assert.deepEqual(aliases.sort(), ['hong@example.com', 'kim@example.com'])
 })
 
-test('signup records only the local part, leaving the alias unassigned', async () => {
+test('signup records the requested address, composing it at approval', async () => {
   await signup({
     displayName: 'Newbie', localPart: 'newbie', password: 'a-long-enough-password',
   })
   const row = db.prepare(
-    `SELECT alias_local, alias_email, status FROM users WHERE username = 'newbie'`,
-  ).get() as { alias_local: string; alias_email: string | null; status: string }
+    `SELECT alias_local, alias_domain, alias_email, status FROM users
+     WHERE username = 'newbie@example.com'`,
+  ).get() as {
+    alias_local: string; alias_domain: string; alias_email: string | null; status: string
+  }
   assert.equal(row.alias_local, 'newbie')
+  // The domain is remembered, because a later one may not be the default.
+  assert.equal(row.alias_domain, 'example.com')
   assert.equal(row.alias_email, null, 'the address is composed at approval, not at signup')
   assert.equal(row.status, 'pending')
+})
+
+test('the same local part is free under a second domain', async () => {
+  setSettings({ org_domain: 'example.com, second.example' })
+  try {
+    // Different addresses, so one must not block the other.
+    await signup({
+      displayName: 'Newbie Two', localPart: 'newbie', domain: 'second.example',
+      password: 'a-long-enough-password',
+    })
+    assert.ok(db.prepare(`SELECT 1 FROM users WHERE username = 'newbie@second.example'`).get())
+
+    // The same address twice is still refused.
+    await assert.rejects(
+      () => signup({
+        displayName: 'Newbie Three', localPart: 'newbie', domain: 'second.example',
+        password: 'a-long-enough-password',
+      }),
+      (err: Error & { key?: string }) => err.key === 'signup.taken',
+    )
+
+    // A domain this deployment does not issue is refused outright.
+    await assert.rejects(
+      () => signup({
+        displayName: 'Outsider', localPart: 'outsider', domain: 'elsewhere.test',
+        password: 'a-long-enough-password',
+      }),
+      (err: Error & { key?: string }) => err.key === 'signup.unknownDomain',
+    )
+  } finally {
+    db.prepare(`DELETE FROM users WHERE username = 'newbie@second.example'`).run()
+    setSettings({ org_domain: 'example.com' })
+  }
 })
 
 test('signup succeeds even with no organization domain configured', async () => {
@@ -387,14 +425,19 @@ test('signup succeeds even with no organization domain configured', async () => 
   await signup({
     displayName: 'Early', localPart: 'early', password: 'a-long-enough-password',
   })
-  // The requested local part is the sign-in name; there is no separate username.
-  assert.ok(db.prepare(`SELECT 1 FROM users WHERE username = 'early'`).get())
+  // With no domain there is nothing to compose, so the local part stands alone.
+  const row = db.prepare(
+    `SELECT alias_domain FROM users WHERE username = 'early'`,
+  ).get() as { alias_domain: string | null }
+  assert.equal(row.alias_domain, null)
   setSettings({ org_domain: 'example.com' })
 })
 
 test('approval refuses until Google is connected', async () => {
   setSettings({ google_client_id: '', google_client_secret: '', google_refresh_token: '' })
-  const row = db.prepare(`SELECT id FROM users WHERE username = 'newbie'`).get() as { id: number }
+  const row = db.prepare(
+    `SELECT id FROM users WHERE username = 'newbie@example.com'`,
+  ).get() as { id: number }
   await assert.rejects(() => approve(row.id), /Google 연동/)
   // Still pending, still no address.
   const after = db.prepare(`SELECT status, alias_email FROM users WHERE id = ?`).get(row.id) as
@@ -482,4 +525,38 @@ test('Gmail stays unread until every owner has read the message', () => {
   // One member marking it unread again makes the mailbox unread again.
   setMessageState(id, 'kim@example.com', 'is_read', false)
   assert.equal(allOwnersRead(id), false)
+})
+
+test('an existing account signs in with its address after migration', async () => {
+  // Rows written before addresses were sign-in names: the migration has to
+  // reach them, or two members become indistinguishable at the login form.
+  db.prepare(`
+    INSERT INTO users (username, display_name, alias_local, alias_email, password_hash, status)
+    VALUES ('legacy', 'Legacy', 'legacy', 'legacy@example.com', 'x', 'active')
+  `).run()
+  db.prepare(`
+    INSERT INTO users (username, display_name, alias_local, password_hash, status)
+    VALUES ('waiting', 'Waiting', 'waiting', 'x', 'pending')
+  `).run()
+
+  migrate()
+
+  const active = db.prepare(
+    `SELECT username, alias_domain FROM users WHERE alias_email = 'legacy@example.com'`,
+  ).get() as { username: string; alias_domain: string }
+  assert.equal(active.username, 'legacy@example.com')
+  assert.equal(active.alias_domain, 'example.com', 'the domain comes from the address it has')
+
+  const pending = db.prepare(
+    `SELECT username, alias_domain FROM users WHERE alias_local = 'waiting'`,
+  ).get() as { username: string; alias_domain: string }
+  assert.equal(pending.username, 'waiting@example.com', 'pending rows take the default domain')
+  assert.equal(pending.alias_domain, 'example.com')
+
+  // An operator with no address at all keeps the name it has: there is
+  // nothing to compose one from.
+  const operator = db.prepare(`SELECT username FROM users WHERE username = 'admin'`).get()
+  assert.ok(operator, 'an account without an address is left alone')
+
+  db.prepare(`DELETE FROM users WHERE alias_local IN ('legacy', 'waiting')`).run()
 })

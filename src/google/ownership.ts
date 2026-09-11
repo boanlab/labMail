@@ -57,8 +57,8 @@ export interface ResolveContext {
   sharedAccountEmail: string
   /** Operators, who receive what is addressed to the shared mailbox. */
   adminAliases?: string[]
-  /** Aliases outside this domain are outside parties. */
-  orgDomain: string
+  /** Addresses outside these domains are outside parties. */
+  orgDomains: string[]
 }
 
 /**
@@ -129,7 +129,7 @@ export function resolveOwners(
     const alias = canonicalize(email)
     if (!alias.includes('@')) return
     if (alias === canonicalize(ctx.sharedAccountEmail)) return
-    if (domainOf(alias) !== ctx.orgDomain) return
+    if (!ctx.orgDomains.includes(domainOf(alias))) return
     if (!ctx.knownAliases.has(alias)) return
 
     const current = best.get(alias)

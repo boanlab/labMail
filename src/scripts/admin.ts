@@ -1,7 +1,7 @@
 /**
  * Promote an existing account to admin.
  *
- *   npm run admin -- <username>
+ *   npm run admin -- <address-or-name>
  *
  * Activates directly, skipping the Workspace provisioning that approval
  * performs, so it does not depend on a Google API call.
@@ -10,17 +10,23 @@ import { migrate, db } from '../db/index.ts'
 
 migrate()
 
-const username = process.argv[2]?.trim().toLowerCase()
-if (!username) {
-  console.error('Usage: npm run admin -- <username>')
+const identifier = process.argv[2]?.trim().toLowerCase()
+if (!identifier) {
+  console.error('Usage: npm run admin -- <address-or-name>')
   process.exit(1)
 }
 
-const user = db.prepare(`SELECT id, alias_email, status FROM users WHERE username = ?`)
-  .get(username) as { id: number; alias_email: string; status: string } | undefined
+// Sign-in names are addresses; an operator account predating that keeps a bare
+// name, and either is what someone would type here.
+const user = db.prepare(`
+  SELECT id, username, alias_email, status FROM users
+  WHERE lower(username) = ? OR lower(alias_email) = ?
+`).get(identifier, identifier) as
+  | { id: number; username: string; alias_email: string | null; status: string }
+  | undefined
 
 if (!user) {
-  console.error(`No user "${username}". Sign up through the web UI first.`)
+  console.error(`No account "${identifier}". Sign up through the web UI first.`)
   process.exit(1)
 }
 
@@ -29,6 +35,8 @@ db.prepare(`
   WHERE id = ?
 `).run(user.id)
 
-console.log(`${username} (${user.alias_email}) is now an active admin.`)
+console.log(`${user.username} (${user.alias_email ?? 'no address yet'}) is now an active admin.`)
 console.log('Note: the Workspace group and send-as entry were NOT created.')
-console.log('If this address needs to send mail, run: npm run provision -- ' + user.alias_email)
+if (user.alias_email) {
+  console.log('If this address needs to send mail, run: npm run provision -- ' + user.alias_email)
+}

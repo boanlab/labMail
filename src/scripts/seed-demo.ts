@@ -1,7 +1,7 @@
 /**
  * Sample mail for evaluating the interface before Google is connected.
  *
- *   npm run seed:demo -- <username>     seed that member's mailbox
+ *   npm run seed:demo -- <address>      seed that member's mailbox
  *   npm run seed:demo -- --clear        remove seeded rows
  *
  * Refuses to run while Google is connected. Rows carry a `demo-` gmail_id, so
@@ -28,12 +28,18 @@ if (isGoogleConnected()) {
 
 const username = args[0]?.trim().toLowerCase()
 if (!username) {
-  console.error('Usage: npm run seed:demo -- <username>   |   npm run seed:demo -- --clear')
+  console.error('Usage: npm run seed:demo -- <address>   |   npm run seed:demo -- --clear')
   process.exit(1)
 }
 
-const user = db.prepare(`SELECT alias_email, display_name FROM users WHERE username = ?`)
-  .get(username) as { alias_email: string | null; display_name: string } | undefined
+// Either form: sign-in names are addresses, and older accounts keep a name.
+const user = db.prepare(`
+  SELECT alias_email, display_name FROM users
+  WHERE lower(username) = ? OR lower(alias_email) = ?
+`)
+  .get(username, username) as
+  | { alias_email: string | null; display_name: string }
+  | undefined
 
 if (!user?.alias_email) {
   console.error(`"${username}" has no mail address yet. Approve the account first.`)

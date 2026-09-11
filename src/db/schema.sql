@@ -12,8 +12,13 @@ CREATE TABLE IF NOT EXISTS users (
   id            INTEGER PRIMARY KEY,
   username      TEXT    NOT NULL UNIQUE,
   display_name  TEXT    NOT NULL,
-  -- Requested local part, e.g. "hong". Domain unknown until approval.
-  alias_local   TEXT    UNIQUE,
+  -- Domain the member asked for, when the deployment issues more than one.
+  -- NULL before any domain is configured.
+  alias_domain  TEXT,
+  -- Requested local part, e.g. "hong". Composed with the domain at approval.
+  -- Unique per domain rather than on its own: with a second domain configured,
+  -- hong@a and hong@b are different people.
+  alias_local   TEXT,
   -- Full alias, composed at approval. NULL while pending, and for an operator
   -- account with no mailbox.
   alias_email   TEXT    UNIQUE,

@@ -1,8 +1,8 @@
 import { db, seedMessageState } from '../db/index.ts'
-import { aliasFor, hashPassword, validateLocalPart } from './auth.ts'
+import { hashPassword, validateLocalPart } from './auth.ts'
 import { provisionMember, deprovisionMember, listSendAsAliases } from '../google/provisioning.ts'
 import { reresolveUnassigned } from '../google/sync.ts'
-import { getSetting, isGoogleConnected } from './settings.ts'
+import { getSetting, isGoogleConnected, orgDomain, orgDomains } from './settings.ts'
 import { UserError } from './errors.ts'
 import { DEFAULT_LOCALE, t, type MessageKey } from './i18n.ts'
 
@@ -13,6 +13,7 @@ export interface PendingUser {
   username: string
   display_name: string
   alias_local: string | null
+  alias_domain: string | null
   alias_email: string | null
   status: string
   is_admin: number
@@ -24,25 +25,44 @@ export interface PendingUser {
 /** Register a signup request. The address is composed at approval. */
 export type LocalPartProblem = MessageKey | null
 
-/** Why a requested local part cannot be used, or null if it can. */
-export function checkLocalPart(localPart: string): LocalPartProblem {
+/**
+ * Why a requested address cannot be used, or null if it can. Checked whole:
+ * with more than one domain, `hong@a` and `hong@b` are different people.
+ */
+export function checkAddress(localPart: string, domain?: string): LocalPartProblem {
   const formatError = validateLocalPart(localPart)
   if (formatError) return formatError
 
   const value = localPart.trim().toLowerCase()
+  const domains = orgDomains()
+
+  // Before a domain is configured there is nothing to compose an address from,
+  // so the local part alone is what can be claimed.
+  if (domains.length === 0) {
+    const shared = (getSetting('shared_account_email') ?? '').trim().toLowerCase()
+    if (shared && shared.split('@')[0] === value) return 'signup.sharedAccount'
+    const clash = db.prepare(`
+      SELECT 1 FROM users WHERE lower(username) = ? OR lower(alias_local) = ?
+    `).get(value, value)
+    return clash ? 'signup.taken' : null
+  }
+
+  const where = (domain ?? domains[0]!).trim().toLowerCase()
+  if (!domains.includes(where)) return 'signup.unknownDomain'
+  const address = `${value}@${where}`
 
   // The shared mailbox is never an owner, so this address would receive nothing.
   const shared = (getSetting('shared_account_email') ?? '').trim().toLowerCase()
-  if (shared && shared.split('@')[0] === value) return 'signup.sharedAccount'
+  if (shared === address) return 'signup.sharedAccount'
 
-  // Three columns claim a name: sign-in name, requested local part, composed
-  // address. Compared by local part so the check works before a domain is set.
+  // Three columns claim an address: the sign-in name, the pair a pending
+  // member requested, and the composed address.
   const clash = db.prepare(`
     SELECT 1 FROM users
-    WHERE username = ?
-       OR alias_local = ?
-       OR lower(substr(alias_email, 1, instr(alias_email, '@') - 1)) = ?
-  `).get(value, value, value)
+    WHERE lower(username) = ?
+       OR lower(alias_email) = ?
+       OR (lower(alias_local) = ? AND lower(COALESCE(alias_domain, ?)) = ?)
+  `).get(address, address, value, domains[0]!, where)
   if (clash) return 'signup.taken'
 
   return null
@@ -52,8 +72,9 @@ export function checkLocalPart(localPart: string): LocalPartProblem {
 export async function signup(input: {
   displayName: string
   localPart: string
+  domain?: string
   password: string
-}): Promise<{ localPart: string }> {
+}): Promise<{ localPart: string; domain: string | null }> {
   if (input.password.length < 10) {
     throw new UserError('signup.passwordLength')
   }
@@ -61,17 +82,27 @@ export async function signup(input: {
     throw new UserError('signup.displayNameRequired')
   }
 
-  const problem = checkLocalPart(input.localPart)
+  const domains = orgDomains()
+  const domain = domains.length > 0
+    ? (input.domain ?? domains[0]!).trim().toLowerCase()
+    : null
+  const problem = checkAddress(input.localPart, domain ?? undefined)
   if (problem) throw new UserError(problem)
 
   const localPart = input.localPart.trim().toLowerCase()
   const passwordHash = await hashPassword(input.password)
+  // The sign-in name is the whole address: a local part alone stops being
+  // unique the moment a second domain is configured.
   db.prepare(`
-    INSERT INTO users (username, display_name, alias_local, alias_email, password_hash, status)
-    VALUES (?, ?, ?, NULL, ?, 'pending')
-  `).run(localPart, input.displayName.trim(), localPart, passwordHash)
+    INSERT INTO users (username, display_name, alias_local, alias_domain,
+                       alias_email, password_hash, status)
+    VALUES (?, ?, ?, ?, NULL, ?, 'pending')
+  `).run(
+    domain ? `${localPart}@${domain}` : localPart,
+    input.displayName.trim(), localPart, domain, passwordHash,
+  )
 
-  return { localPart }
+  return { localPart, domain }
 }
 
 /**
@@ -95,7 +126,7 @@ export async function approve(
     throw new UserError('setup.notConnected')
   }
 
-  const alias = aliasFor(user.alias_local)
+  const alias = `${user.alias_local}@${user.alias_domain ?? orgDomain()}`
   const taken = db.prepare(`SELECT 1 FROM users WHERE alias_email = ? AND id != ?`)
     .get(alias, userId)
   if (taken) throw new UserError('member.aliasTaken', { alias })
@@ -192,8 +223,8 @@ export function canSend(userId: number): boolean {
 
 export function listUsers(): PendingUser[] {
   return db.prepare(`
-    SELECT id, username, display_name, alias_local, alias_email, status, is_admin,
-           provisioned, provision_error, created_at
+    SELECT id, username, display_name, alias_local, alias_domain, alias_email,
+           status, is_admin, provisioned, provision_error, created_at
     FROM users ORDER BY
       CASE status WHEN 'pending' THEN 0 WHEN 'active' THEN 1 ELSE 2 END,
       created_at DESC

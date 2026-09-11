@@ -19,6 +19,7 @@ const ADDED_COLUMNS: { table: string; column: string; definition: string }[] = [
   { table: 'users', column: 'signature', definition: 'TEXT' },
   { table: 'users', column: 'drive_folder_id', definition: 'TEXT' },
   { table: 'message_state', column: 'is_removed', definition: 'INTEGER NOT NULL DEFAULT 0' },
+  { table: 'users', column: 'alias_domain', definition: 'TEXT' },
 ]
 
 function applyAddedColumns(): void {
@@ -30,9 +31,89 @@ function applyAddedColumns(): void {
   }
 }
 
+/**
+ * Make a local part unique per domain rather than on its own.
+ *
+ * SQLite cannot drop a column constraint in place, so the table is rebuilt
+ * inside a transaction with foreign keys off, comparing row counts before the
+ * old one goes. One-off; a rebuilt table is left alone.
+ */
+function relaxLocalPartUniqueness(): void {
+  const stale = (db.prepare(`PRAGMA index_list(users)`).all() as
+    { name: string; origin: string }[]).find((index) => {
+      if (index.origin !== 'u') return false
+      const columns = db.prepare(`PRAGMA index_info("${index.name}")`).all() as { name: string }[]
+      return columns.length === 1 && columns[0]?.name === 'alias_local'
+    })
+  if (!stale) return
+
+  const count = () => (db.prepare(`SELECT COUNT(*) AS n FROM users`).get() as { n: number }).n
+  const before = count()
+  const columns = (db.prepare(`PRAGMA table_info(users)`).all() as { name: string }[])
+    .map((c) => c.name).join(', ')
+
+  db.pragma('foreign_keys = OFF')
+  try {
+    db.transaction(() => {
+      db.exec(`ALTER TABLE users RENAME TO users_old`)
+      db.exec(readFileSync(join(here, 'schema.sql'), 'utf8'))
+      db.exec(`INSERT INTO users (${columns}) SELECT ${columns} FROM users_old`)
+      if (count() !== before) throw new Error(`users rebuild lost rows: ${before} -> ${count()}`)
+      db.exec(`DROP TABLE users_old`)
+    })()
+    console.log(`[db] users rebuilt: local parts are unique per domain (${before} rows)`)
+  } finally {
+    db.pragma('foreign_keys = ON')
+  }
+}
+
+/**
+ * Make the sign-in name the whole address, which a local part alone cannot be
+ * once a second domain is configured.
+ *
+ * An assigned row takes the domain from its address, a pending one the
+ * default. An account with no address keeps the name it has.
+ */
+function useAddressAsSignInName(): void {
+  const assigned = db.prepare(`
+    UPDATE users
+    SET username = lower(alias_email),
+        alias_domain = COALESCE(
+          alias_domain, lower(substr(alias_email, instr(alias_email, '@') + 1))
+        )
+    WHERE alias_email IS NOT NULL AND lower(username) <> lower(alias_email)
+  `).run().changes
+
+  const domain = (db.prepare(`SELECT value FROM settings WHERE key = 'org_domain'`)
+    .get() as { value: string } | undefined)?.value
+  const primary = (domain ?? '').toLowerCase().split(/[\s,]+/).map((d) => d.trim()).find(Boolean)
+
+  let pending = 0
+  if (primary) {
+    pending = db.prepare(`
+      UPDATE users
+      SET username = lower(alias_local) || '@' || ?, alias_domain = ?
+      WHERE alias_email IS NULL AND alias_local IS NOT NULL AND alias_domain IS NULL
+    `).run(primary, primary).changes
+  }
+
+  if (assigned + pending > 0) {
+    console.log(`[db] sign-in names are now addresses (${assigned} assigned, ${pending} pending)`)
+  }
+}
+
 export function migrate(): void {
   db.exec(readFileSync(join(here, 'schema.sql'), 'utf8'))
   applyAddedColumns()
+  relaxLocalPartUniqueness()
+  // After the columns exist: an existing database reaches schema.sql before
+  // ALTER has added alias_domain. COALESCE, because SQLite treats NULLs as
+  // distinct and two pending members could then claim one local part.
+  db.exec(`
+    CREATE UNIQUE INDEX IF NOT EXISTS users_requested_address
+      ON users (alias_local, COALESCE(alias_domain, ''))
+  `)
+  useAddressAsSignInName()
 }
 
 // On import: modules prepare statements at load time. Idempotent.

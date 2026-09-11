@@ -23,8 +23,19 @@ const SESSION_SWEEP_MS = 3_600_000
  * deployment. Created without an alias, the domain not yet being known.
  */
 async function bootstrapAdmin(): Promise<void> {
-  const existing = db.prepare(`SELECT id FROM users WHERE username = ?`)
-    .get(config.admin.username) as { id: number } | undefined
+  // Matched on the address too: sign-in names are addresses once one has been
+  // assigned, and looking only for the bare name would create a second account
+  // beside the operator's own.
+  const existing = db.prepare(`
+    SELECT id FROM users
+    WHERE lower(username) = ?
+       OR lower(alias_email) = ?
+       OR lower(substr(alias_email, 1, instr(alias_email, '@') - 1)) = ?
+  `).get(
+    config.admin.username,
+    config.admin.username,
+    config.admin.username,
+  ) as { id: number } | undefined
 
   if (existing) {
     // The environment seeds the account; it does not override a changed password.

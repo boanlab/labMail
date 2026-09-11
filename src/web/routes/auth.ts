@@ -1,12 +1,14 @@
 import { db } from '../../db/index.ts'
 import { createSession, destroySession, loadSession, verifyPassword } from '../../core/auth.ts'
-import { signup, checkLocalPart, canSend } from '../../core/users.ts'
+import { signup, checkAddress, canSend } from '../../core/users.ts'
 import { setSignature, setDisplayName, changePassword } from '../../core/profile.ts'
 import {
   listAppPasswords, createAppPassword, revokeAppPassword,
 } from '../../core/app-passwords.ts'
 import { countUnread, mailboxCounts } from '../../db/index.ts'
-import { getSetting, isGoogleConnected, mailClientSettings } from '../../core/settings.ts'
+import {
+  getSetting, isGoogleConnected, mailClientSettings, orgDomains,
+} from '../../core/settings.ts'
 import { syncHealth } from '../../core/sync-status.ts'
 import { LOCALES, LOCALE_COOKIE, isLocale, t } from '../../core/i18n.ts'
 import {
@@ -35,7 +37,7 @@ export function registerAuthRoutes(router: Router): void {
    * signup does not depend on it.
    */
   router.get('/api/config', ({ res, locale }) => {
-    json(res, 200, { orgDomain: getSetting('org_domain'), locale, locales: LOCALES })
+    json(res, 200, { orgDomains: orgDomains(), locale, locales: LOCALES })
   })
 
   /**
@@ -76,7 +78,7 @@ export function registerAuthRoutes(router: Router): void {
   router.get('/api/signup/available', ({ res, url, locale }) => {
     const localPart = (url.searchParams.get('localPart') ?? '').trim().toLowerCase()
     if (!localPart) throw new HttpError(400, 'address.format')
-    const problem = checkLocalPart(localPart)
+    const problem = checkAddress(localPart, url.searchParams.get('domain') ?? undefined)
     json(res, 200, {
       available: problem === null,
       reason: problem ? t(locale, problem) : null,
@@ -88,6 +90,7 @@ export function registerAuthRoutes(router: Router): void {
     await signup({
       displayName: str(body, 'displayName'),
       localPart: str(body, 'localPart'),
+      domain: typeof body.domain === 'string' ? body.domain : undefined,
       password: str(body, 'password'),
     })
     json(res, 201, { message: t(locale, 'auth.signupReceived') })
