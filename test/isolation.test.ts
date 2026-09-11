@@ -561,6 +561,24 @@ test('an existing account signs in with its address after migration', async () =
   db.prepare(`DELETE FROM users WHERE alias_local IN ('legacy', 'waiting')`).run()
 })
 
+test('no table is left referencing a name the rebuild dropped', () => {
+  // The rename reaches every table that references the renamed one, so this
+  // asks the schema as a whole rather than the table that was noticed first.
+  const dangling = db.prepare(`
+    SELECT name FROM sqlite_master WHERE type = 'table' AND sql LIKE '%users_old%'
+  `).all() as { name: string }[]
+  assert.deepEqual(dangling, [])
+
+  // And a write to one of them works: app passwords failed where sessions did.
+  const user = db.prepare(`SELECT id FROM users LIMIT 1`).get() as { id: number }
+  db.prepare(`
+    INSERT INTO app_passwords (user_id, label, password_hash) VALUES (?, 'probe', 'x')
+  `).run(user.id)
+  assert.equal(
+    db.prepare(`DELETE FROM app_passwords WHERE label = 'probe'`).run().changes, 1,
+  )
+})
+
 test('a table rebuild leaves other tables referencing it, not its old name', () => {
   // SQLite carries a rename into other tables' foreign keys. A rebuild that
   // renames a table out of the way and drops it would leave sessions naming

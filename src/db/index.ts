@@ -108,30 +108,37 @@ function useAddressAsSignInName(): void {
 }
 
 /**
- * Point a foreign key back at `users` after a rebuild rewrote it.
+ * Point foreign keys back at `users` after a rebuild rewrote them.
  *
- * SQLite carries a rename into other tables' references, so a table renamed
- * out of the way and dropped leaves them naming something gone. Deleting a row
- * then fails -- which is what signing out does.
+ * SQLite carries a rename into every table that references the renamed one, so
+ * a table renamed out of the way and dropped leaves them all naming something
+ * gone -- and writing to any of them fails. Every affected table is rebuilt,
+ * not the one that happened to be noticed first.
  */
-function repairSessionReference(): void {
-  const sql = (db.prepare(`SELECT sql FROM sqlite_master WHERE name = 'sessions'`)
-    .get() as { sql: string } | undefined)?.sql
-  if (!sql?.includes('users_old')) return
+function repairDanglingReferences(): void {
+  const broken = db.prepare(`
+    SELECT name FROM sqlite_master WHERE type = 'table' AND sql LIKE '%users_old%'
+  `).all() as { name: string }[]
+  if (broken.length === 0) return
 
-  const rows = db.prepare(`SELECT token, user_id, created_at, expires_at FROM sessions`).all() as
-    { token: string; user_id: number; created_at: string; expires_at: string }[]
   db.pragma('foreign_keys = OFF')
   try {
-    db.transaction(() => {
-      db.exec(`DROP TABLE sessions`)
-      db.exec(readFileSync(join(here, 'schema.sql'), 'utf8'))
-      const insert = db.prepare(
-        `INSERT INTO sessions (token, user_id, created_at, expires_at) VALUES (?, ?, ?, ?)`,
-      )
-      for (const r of rows) insert.run(r.token, r.user_id, r.created_at, r.expires_at)
-    })()
-    console.log(`[db] sessions now reference users again (${rows.length} kept)`)
+    for (const { name } of broken) {
+      const columns = (db.prepare(`PRAGMA table_info("${name}")`).all() as { name: string }[])
+        .map((c) => c.name).join(', ')
+      const rows = db.prepare(`SELECT ${columns} FROM "${name}"`).all() as Record<string, unknown>[]
+      db.transaction(() => {
+        db.exec(`DROP TABLE "${name}"`)
+        db.exec(readFileSync(join(here, 'schema.sql'), 'utf8'))
+        if (rows.length > 0) {
+          const insert = db.prepare(
+            `INSERT INTO "${name}" (${columns}) VALUES (${columns.split(', ').map(() => '?').join(', ')})`,
+          )
+          for (const row of rows) insert.run(...Object.values(row))
+        }
+      })()
+      console.log(`[db] ${name} references users again (${rows.length} kept)`)
+    }
   } finally {
     db.pragma('foreign_keys = ON')
   }
@@ -149,7 +156,7 @@ export function migrate(): void {
       ON users (alias_local, COALESCE(alias_domain, ''))
   `)
   useAddressAsSignInName()
-  repairSessionReference()
+  repairDanglingReferences()
 }
 
 // On import: modules prepare statements at load time. Idempotent.
