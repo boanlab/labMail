@@ -3488,24 +3488,29 @@ function renderReaderActions(msg) {
     return b
   }
 
+  // Getting a message back out is the main thing done in Spam and in Trash, so
+  // it is a named button in both rather than one more icon to decode.
+  const named = (iconName, label, onClick) => {
+    const b = el('button', 'bordered')
+    b.append(icon(iconName, 'icon-sm'), document.createTextNode(label))
+    b.onclick = onClick
+    bar.appendChild(b)
+  }
+
   if (inSpam) {
-    // Recovering a misclassified message is the only thing worth doing here,
-    // so it gets a labelled button rather than another icon in a row.
-    const restore = el('button', 'bordered')
-    restore.append(icon('not-spam', 'icon-sm'), document.createTextNode(t('reader.notSpamTitle')))
-    restore.onclick = () => act(msg.id, 'notspam', 'toast.notSpam')
-    bar.appendChild(restore)
+    named('not-spam', t('reader.notSpamTitle'), () => act(msg.id, 'notspam', 'toast.notSpam'))
     add('trash', t('reader.deleteTitle'), () => act(msg.id, 'trash', 'toast.trashed'))
     bar.appendChild(el('span', 'bar-sep'))
   } else {
-    if (!inTrash) add('archive', t('reader.archiveTitle'), () => act(msg.id, 'archive', 'toast.archived'))
     if (inTrash) {
-      add('restore', t('reader.restoreTitle'), () => act(msg.id, 'untrash', 'toast.restored'))
+      named('restore', t('reader.restoreTitle'), () => act(msg.id, 'untrash', 'toast.restored'))
       add('trash', t('reader.removeTitle'), async () => {
         if (await askConfirm(t('reader.removeConfirm'), { danger: true })) act(msg.id, 'remove', 'toast.removed')
       })
+    } else {
+      add('archive', t('reader.archiveTitle'), () => act(msg.id, 'archive', 'toast.archived'))
+      add('trash', t('reader.deleteTitle'), () => act(msg.id, 'trash', 'toast.trashed'))
     }
-    else add('trash', t('reader.deleteTitle'), () => act(msg.id, 'trash', 'toast.trashed'))
     add('spam', t('reader.spamTitle'), () => act(msg.id, 'spam', 'toast.reportedSpam'))
     bar.appendChild(el('span', 'bar-sep'))
   }
