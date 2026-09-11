@@ -41,7 +41,7 @@ known yet. Assign one in system settings once the domain is configured.
 
 ## Runtime settings
 
-Entered at **시스템 설정** (System settings) and stored in the `settings` table.
+Entered under **System settings** and stored in the `settings` table.
 Changes take effect immediately; no restart is needed.
 
 | Setting | Purpose |

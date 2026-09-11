@@ -25,7 +25,7 @@ admin UI, so the container can be deployed before a Google Cloud project exists.
 
 ## Connect Google
 
-Sign in as the admin and open **시스템 설정** (System settings).
+Sign in as the admin and open **System settings**.
 
 1. **Copy the redirect URI** shown at the top. It follows whatever address the
    browser used, so reaching the service by host IP works with no extra
