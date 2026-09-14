@@ -221,10 +221,19 @@ async function fetchAndStore(ids: string[], ctx: ReturnType<typeof ownershipCont
   const api = gmail()
   let stored = 0
   await mapLimit(ids, 8, async (id) => {
-    const res = await withRetry(
-      () => api.users.messages.get({ userId: 'me', id, format: 'full' }),
-      `messages.get ${id}`,
-    )
+    let res
+    try {
+      res = await withRetry(
+        () => api.users.messages.get({ userId: 'me', id, format: 'full' }),
+        `messages.get ${id}`,
+      )
+    } catch (err) {
+      // Gone between the history record and this fetch -- deleted in Gmail, or
+      // swept from Spam. There is nothing to store, and failing the batch would
+      // leave the cursor stuck on it and stop mail arriving at all.
+      if ((err as { code?: number })?.code === 404) return
+      throw err
+    }
     const parsed = parseMessage(res.data)
     parsed.labels = await rescueConfirmation(parsed)
     storeMessage(parsed, ctx)

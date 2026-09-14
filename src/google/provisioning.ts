@@ -54,6 +54,34 @@ export async function createGroupAlias(aliasEmail: string, displayName: string):
   }
 }
 
+/**
+ * Stop Gmail judging our own redistribution as spam.
+ *
+ * A member address is a Group, so mail reaches the mailbox on a second hop.
+ * DMARC cannot align on a forwarded message, and Gmail files legitimate mail
+ * as spam on that basis -- even though it authenticated on arrival and Google
+ * preserved the proof in the ARC chain it wrote itself.
+ *
+ * Scoped to the Group's own List-Id, so this exempts exactly the hop labMail
+ * created and nothing else. Google still filters the message when it first
+ * arrives for the Group; what this drops is the second judgement, the one made
+ * after the alignment it needs has been lost.
+ */
+export async function ensureNeverSpam(aliasEmail: string): Promise<void> {
+  const [local, domain] = aliasEmail.trim().toLowerCase().split('@')
+  if (!local || !domain) return
+  const query = `list:${local}.${domain}`
+
+  const api = gmail()
+  const existing = await api.users.settings.filters.list({ userId: 'me' })
+  if ((existing.data.filter ?? []).some((f) => f.criteria?.query === query)) return
+
+  await api.users.settings.filters.create({
+    userId: 'me',
+    requestBody: { criteria: { query }, action: { removeLabelIds: ['SPAM'] } },
+  })
+}
+
 export interface SendAsResult {
   verified: boolean
   /** Why the address cannot send yet, when it cannot. */
@@ -84,6 +112,13 @@ export async function provisionMember(aliasEmail: string, displayName: string): 
   // Making the address deliverable is what an approval is for, so a failure
   // here is still fatal to it.
   await createGroupAlias(aliasEmail, displayName)
+
+  // Not fatal: the address works without it, it just collects false spam.
+  try {
+    await ensureNeverSpam(aliasEmail)
+  } catch (err) {
+    console.error(`[provision] spam exemption for ${aliasEmail}:`, (err as Error).message)
+  }
 
   // Sending is a separate question, and not one LabMail can settle: the
   // send-as entry has to be added by hand. Report it as missing unless it is
