@@ -52,6 +52,29 @@ async function bootstrapAdmin(): Promise<void> {
 }
 
 /**
+ * Give every existing address the spam exemption new ones get at approval.
+ *
+ * Once per process rather than per tick: it is a couple of API calls, and an
+ * address that gains the exemption keeps it.
+ */
+let exempted = false
+async function exemptMembersOnce(): Promise<void> {
+  if (exempted) return
+  exempted = true
+  const rows = db.prepare(
+    `SELECT alias_email FROM users WHERE status = 'active' AND alias_email IS NOT NULL`,
+  ).all() as { alias_email: string }[]
+  try {
+    const { ensureNeverSpam } = await import('../google/provisioning.ts')
+    for (const row of rows) await ensureNeverSpam(row.alias_email)
+  } catch (err) {
+    // Retried on the next start; nothing else depends on it.
+    exempted = false
+    console.error('[sync] spam exemptions:', (err as Error).message)
+  }
+}
+
+/**
  * Periodic sync, in-process so a deployment stays one container.
  * No-op until Google is connected; never overlaps itself.
  */
@@ -66,6 +89,7 @@ async function syncTick(): Promise<void> {
     await linkDrafts()
     // Send-as entries change outside LabMail; one request per tick notices.
     await reconcileSendAs()
+    await exemptMembersOnce()
     if (result.changed > 0 || assigned > 0) {
       console.log(`[sync] ${result.changed} changed, ${assigned} newly attributed`)
     }
