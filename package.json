@@ -22,7 +22,7 @@
   "dependencies": {
     "better-sqlite3": "^13.0.3",
     "dotenv": "^17.4.2",
-    "googleapis": "^178.0.0"
+    "googleapis": "^183.0.0"
   },
   "devDependencies": {
     "@types/better-sqlite3": "^9.6.0",
